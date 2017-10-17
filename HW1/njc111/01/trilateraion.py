@@ -32,12 +32,10 @@ def trilaterate3D(distances):
     pPos = p1 + x*ex + y*ey + zPos*ez
     pNeg = p1 + x*ex + y*ey + zNeg*ez
 
-    if np.linalg.norm(abs(p4-pPos)) == r4:
+    if abs(np.linalg.norm(abs(p4-pPos)) -r4) > abs(np.linalg.norm(abs(p4-pNeg)) -r4):
         return pPos
-    elif np.linalg.norm(abs(p4-pNeg)) == r4:
-        return pNeg
     else:
-        return Null
+        return pNeg
 
 
 if __name__ == "__main__":
@@ -54,22 +52,10 @@ if __name__ == "__main__":
     distances = []
     for line in range(0, len(lines)):
         distances.append(map(float, lines[line].split(' ')))
-
-
-    ax = plt.gca()
-    ax.cla()
-    ax.set_xlim((-10, 10))
-    ax.set_ylim((-10, 10))
-
-    ax.set_facecolor('white')
     # Print out the data
     print "The input four points and distances, in the format of [x, y, z, d], are:"
     for p in range(0, len(distances)):
         print distances[p] 
-        gray = distances[p][2]
-        circle = plt.Circle(tuple(distances[p][0:2]), distances[p][3], color = (.1*gray,.1*gray,.1*gray))
-        ax.add_artist(circle)
-    plt.show()
     # Call the function and compute the location  
     location = trilaterate3D(distances)
     print 
