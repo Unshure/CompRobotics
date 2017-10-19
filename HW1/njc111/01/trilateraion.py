@@ -11,7 +11,7 @@ def trilaterate3D(distances):
     r2 = distances[1][3]
     r3 = distances[2][3]
     r4 = distances[3][3]
-    x,y,z = 0,0,0
+    x,y,z = 0.0,0.0,0.0
 
     ex = (p2-p1)/(np.linalg.norm(p2-p1))
     i =  np.dot(ex, (p3-p1))
@@ -24,18 +24,20 @@ def trilaterate3D(distances):
     # cj was chosed instad of j since j represents complex numbers
     cj = np.dot(ey,(p3-p1))
 
-    x = (np.power(r1,2) - np.power(r2,2) + np.power(d,2))/(2*d)
-    y = (np.power(r1,2)-np.power(r3,2)+np.power(i,2)+np.power(cj,2))/(2*cj) - (i*x)/(cj)
-    zPos = np.sqrt(np.power(r1,2)-np.power(x,2)-np.power(y,2))
-    zNeg = -1*np.sqrt(np.power(r1,2)-np.power(x,2)-np.power(y,2))
+    x = (np.power(r1,2.0) - np.power(r2,2.0) + np.power(d,2.0))/(2.0*d)
+    y = (np.power(r1,2.0)-np.power(r3,2.0)+np.power(i,2)+np.power(cj,2.0))/(2.0*cj) - (i*x)/(cj)
+
+    zPos = np.sqrt(np.power(r1,2.0)-np.power(x,2.0)-np.power(y,2.0))
+    zNeg = -1*np.sqrt(np.power(r1,2.0)-np.power(x,2.0)-np.power(y,2.0))
+    print np.power(r1,2.0)-np.power(x,2.0)-np.power(y,2.0)
 
     pPos = p1 + x*ex + y*ey + zPos*ez
     pNeg = p1 + x*ex + y*ey + zNeg*ez
 
     if abs(np.linalg.norm(abs(p4-pPos)) -r4) > abs(np.linalg.norm(abs(p4-pNeg)) -r4):
-        return pPos
-    else:
         return pNeg
+    else:
+        return pPos
 
 
 if __name__ == "__main__":
