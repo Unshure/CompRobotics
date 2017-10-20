@@ -1,15 +1,24 @@
 import sys
 import numpy as np
 import matplotlib.pyplot as plt
-import itertools
-import warnings
 
 def trilaterate3D(distances):
     pt1 = np.array(distances[0])
     pt2 = np.array(distances[1])
     pt3 = np.array(distances[2])
     pt4 = np.array(distances[3])
-    lst = itertools.permutations([pt1,pt2,pt3,pt4],4)
+    lst = [(pt1, pt2, pt3, pt4), (pt1, pt2, pt4, pt3),\
+            (pt1, pt3, pt2, pt4), (pt1, pt3, pt4, pt2),\
+            (pt1, pt4, pt2, pt3), (pt1, pt4, pt3, pt2),\
+            (pt2, pt1, pt3, pt4), (pt2, pt1, pt4, pt3),\
+            (pt2, pt3, pt1, pt4), (pt2, pt3, pt4, pt1),\
+            (pt2, pt4, pt1, pt3), (pt2, pt4, pt3, pt1),\
+            (pt3, pt1, pt2, pt4), (pt3, pt1, pt4, pt2),\
+            (pt3, pt2, pt1, pt4), (pt3, pt2, pt4, pt1),\
+            (pt3, pt4, pt1, pt2), (pt3, pt4, pt2, pt1),\
+            (pt4, pt1, pt2, pt3), (pt4, pt1, pt3, pt2),\
+            (pt4, pt2, pt1, pt3), (pt4, pt2, pt3, pt1),\
+            (pt4, pt3, pt1, pt2), (pt4, pt3, pt2, pt1)]
     avg = []
     for points in lst:
         p1 = points[0][0:3]
@@ -35,9 +44,11 @@ def trilaterate3D(distances):
 
         x = (np.power(r1,2) - np.power(r2,2) + np.power(d,2))/(2*d)
         y = (np.power(r1,2)-np.power(r3,2)+np.power(i,2)+np.power(cj,2))/(2*cj) - (i*x)/(cj)
-        zPos = np.sqrt(abs(np.power(r1,2)-np.power(x,2)-np.power(y,2)))
-        zNeg = -1*np.sqrt(abs(np.power(r1,2)-np.power(x,2)-np.power(y,2)))
-
+        if np.power(r1,2)-np.power(x,2)-np.power(y,2) >=0:
+            zPos = np.sqrt(np.power(r1,2)-np.power(x,2)-np.power(y,2))
+            zNeg = -1*np.sqrt(np.power(r1,2)-np.power(x,2)-np.power(y,2))
+        else:
+            continue
 
 
         pPos = p1 + x*ex + y*ey + zPos*ez
@@ -47,7 +58,6 @@ def trilaterate3D(distances):
             avg.append(pNeg)
         else:
             avg.append(pPos)
-    print  avg[3][:]
     return sum(avg)/len(avg)
 
 if __name__ == "__main__":
