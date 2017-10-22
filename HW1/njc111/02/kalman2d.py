@@ -22,16 +22,11 @@ if __name__ == "__main__":
     measured1 = []
     measured2 = []
 
-    A = np.eye(2)
-    B = np.eye(2)
-    H = np.eye(2)
     Kk = np.eye(2)
     P = scaler*np.eye(2)
     xhat = np.array([[x10],[x20]])
     Qcovar = np.array([[10**-4, 2*10**-5],[2*10**-5,10**-4]])
     Rcovar = np.array([[10**-2, 5*10**-3],[5*10**-3,2*10**-2]])
-    Q = np.random.multivariate_normal([0,0],Qcovar,2)
-    R = np.random.multivariate_normal([0,0],Rcovar,2)
     pred1 = []
     pred2 = []
     # Print out the data
