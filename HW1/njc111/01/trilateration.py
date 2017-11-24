@@ -58,7 +58,11 @@ def trilaterate3D(distances):
             avg.append(pNeg)
         else:
             avg.append(pPos)
-    return sum(avg)/len(avg)
+    if len(avg) > 0:
+        return sum(avg)/len(avg)
+    else:
+        print "Error: No circle intersections"
+        return [0,0,0]
 
 if __name__ == "__main__":
     
