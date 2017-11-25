@@ -31,4 +31,4 @@ def testIntersect(halfline, edge):
          return False
     else:
         return True
-print testIntersect([2.0, 3.0, 4.1, 4.2], [2.9, 1.2, 2.0, 3.0])
+print testIntersect([5.2,1.5, 5.2, 4.9], [5.2, 4.9, 5.8, 6.8])

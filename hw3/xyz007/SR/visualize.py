@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from matplotlib.path import Path
 import matplotlib.patches as patches
 import numpy as np
+import spr
 
 '''
 Set up matplotlib to create a plot with an empty square
@@ -61,7 +62,6 @@ def createPolygonPatchForRobot(polygon):
     patch = patches.PathPatch(path, facecolor='gray', lw=1)
 
     return patch
-    
 
 '''
 Render polygon obstacles  
@@ -70,8 +70,23 @@ def drawPolygons(polygons):
     fig, ax = setupPlot()
     for p in range(0, len(polygons)):
         patch = createPolygonPatch(polygons[p])
-        ax.add_patch(patch)    
+        ax.add_patch(patch)
+    createPossiblePaths(polygons)
+
     plt.show()
+
+def createPossiblePaths(polygons):
+    reflexVertices = spr.findReflexiveVertices(polygons)
+    vertexMap, adjListMap = spr.computeSPRoadmap(polygons, reflexVertices)
+    for point in adjListMap:
+        for point2 in adjListMap[point]:
+            p1 = vertexMap[point]
+            print point2
+            p2 = vertexMap[point2[0]]
+            xvert,yvert = [list(n) for n in zip(p1,p2)]
+            plt.plot([xvert[0]/10,xvert[1]/10],[yvert[0]/10,yvert[1]/10],'-g')
+
+
 
 if __name__ == "__main__":
     

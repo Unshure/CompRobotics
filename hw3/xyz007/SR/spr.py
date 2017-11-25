@@ -115,34 +115,59 @@ def computeSPRoadmap(polygons, reflexVertices):
                 else:
                     #print "free"
                     pointList.append(point2)
-            print pointList
+            #print pointList
             for x in pointList:
                 adjList.append([reflexVertices.index(x)+1, np.linalg.norm(np.array(point) - np.array(x))])
             adjList.sort(key = lambda x: x[0])
             adjacencyListMap[index] = adjList
     return vertexMap, adjacencyListMap
-'''
-        # Test for visibility
-        for i,point in enumerate(reflexVertices):
-            if point == p:
-                continue
-            testLine = [p[0],p[1],point[0],point[1]]
-            for edge in edgeList:
-                print "TEST STUFF: ",testLine, edge
-                if testIntersect(testLine,edge):
-                    print "intersect"
-                    break
-            else:
-                print "free"
-                adjList.append([i+1,np.linalg.norm(np.array(point) - np.array(p))])
-        adjListMap[index+1] = adjList
-'''
+
 '''
 Perform uniform cost search 
 '''
 def uniformCostSearch(adjListMap, start, goal):
     path = []
     pathLength = 0
+
+    closedSet = set()
+    openSet = {start:0}
+
+
+    # stores like this: {Vertex: [Vertex Parent, length from parent to vertex],...}
+    retrace = {}
+    def getPath(current):
+        reversePath = []
+        Length = 0
+        reversePath.append(current)
+        while current != start:
+            reversePath.append(retrace[current][0])
+            Length += retrace[current][1]
+            current = retrace[current][0]
+        reversePath.reverse()
+        return reversePath, Length
+
+    while openSet:
+        #print openSet 
+        current = min(openSet,key = lambda x: openSet[x])
+        del openSet[current]
+        closedSet.add(current)
+        if current == goal:
+            #print "I DIDIDIDID ITT"
+            path, pathLength = getPath(current)
+            break
+        for point in adjListMap[current]:
+            if point[0] in closedSet:
+                continue
+            retrace[point[0]] = [current, point[1]]
+            #print point,  retrace[point[0]]
+            if point[0] in openSet:
+                if point[1] < openSet[point[0]]:
+                    openSet[point[0]] = point[1]
+                retrace[point[0]] = [current, point[1]]
+            else:
+                openSet[point[0]] = point[1]
+                retrace[point[0]] = [current, point[1]]
+
     
     # Your code goes here. As the result, the function should
     # return a list of vertex labels, e.g.
@@ -151,7 +176,7 @@ def uniformCostSearch(adjListMap, start, goal):
     #
     # in which 23 would be the label for the start and 37 the
     # label for the goal.
-    
+    #print path, pathLength
     return path, pathLength
 
 '''
@@ -162,13 +187,29 @@ def updateRoadmap(adjListMap, x1, y1, x2, y2):
     startLabel = 0
     goalLabel = -1
 
+    liststarts = []
+    listends = []
+    for vertex in vertexMap:
+        lengthstart = np.linalg.norm(np.array([x1,y1]) - np.array(vertexMap[vertex]))
+        liststarts.append([vertex,lengthstart])
+        lengthend = np.linalg.norm(np.array([x2,y2]) - np.array(vertexMap[vertex]))
+        listends.append([vertex,lengthend])
+
+    updatedALMap[startLabel] = [min(liststarts,key = lambda x: x[1])]
+    for point in adjListMap:
+        updatedALMap[point] = adjListMap[point]
     # Your code goes here. Note that for convenience, we 
     # let start and goal have vertex labels 0 and -1,
     # respectively. Make sure you use these as your labels
     # for the start and goal vertices in the shortest path
     # roadmap. Note that what you do here is similar to
     # when you construct the roadmap. 
-    
+    endConnect = min(listends,key = lambda x: x[1])
+    print endConnect
+    print listends
+    temp = [x[:] for x in adjListMap[endConnect[0]]]
+    temp.append([goalLabel,endConnect[1]])
+    updatedALMap[endConnect[0]] = temp
     return startLabel, goalLabel, updatedALMap
 
 if __name__ == "__main__":
