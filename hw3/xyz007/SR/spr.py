@@ -33,30 +33,15 @@ Compute the roadmap graph
 def computeSPRoadmap(polygons, reflexVertices):
     vertexMap = dict()
     adjacencyListMap = dict()
-    #Returns angle from the x axis ccw
-    def getAngle(point):
-        x = point[0] - p[0]
-        y = point[1] - p[1]
-        if x ==0:
-            if y >0:
-                return 90
-            else:
-                return 270
-        if y==0:
-            if x>0:
-                return 0
-            else:
-                return 180
-        a = math.degrees(math.atan(y/x))
-        if x<0:
-            a = a+180
-        elif y<0:
-            a = a+360
-        return a
 
     def testIntersect(halfline, edge):
         x1,y1,x2,y2 = halfline[0],halfline[1],halfline[2],halfline[3]
         x3,y3,x4,y4 = edge[0],edge[1],edge[2],edge[3]
+
+        if [x1,y1] == [x3,y3] or [x1,y1] == [x4,y4] \
+            or [x2,y2] == [x3,y3] or [x2,y2] == [x4,y4]:
+            return False
+
         if max(x1,x2) <= min(x3,x4):
             return False
         if x1-x2 == 0:
@@ -92,7 +77,6 @@ def computeSPRoadmap(polygons, reflexVertices):
     # {1: [[2, 5.95], [3, 4.72]], 2: [[1, 5.95], [5,3.52]], ... }
     #
     # The vertex labels used here should start from 1
-    adjListMap = {}
     vertextMap = {}
     #create list of edges
     edgeList = []
@@ -100,19 +84,44 @@ def computeSPRoadmap(polygons, reflexVertices):
         for i,point in enumerate(polygon):
             p2 = polygon[(i + 1)%len(polygon)]
             edgeList.append([point[0],point[1],p2[0],p2[1]])
-         
 
-    # Loop though all vertices
-    for index,p in enumerate(reflexVertices):
-        vertexMap[index+1] = p
+    # Loop though all vert=ices
+    index = 0
+    for polygon in polygons:
+        for indexPoly, point in enumerate([ q for q in polygon if q in reflexVertices]):
+            index += 1
+            vertexMap[index] = point
+            #Initalize list to be put into adjListMap
+            pointList = []
+            adjList = []
 
-        #Sort in clockwise order
-        #listclock = [n[:] for n in reflexVertices]
-        #listclock.pop(listclock.index(p))
-        #listclock.sort(key = getAngle, reverse = True)
+            #Adds Adjacent points to be possible paths
+            count = 1
+            while polygon[(indexPoly + count)%len(polygon)] not in reflexVertices:
+                count +=1
+            pointList.append(polygon[(indexPoly + count) % len(polygon)])
+            count = 1
+            while polygon[(indexPoly - count)%len(polygon)] not in reflexVertices:
+                count +=1
+            pointList.append(polygon[(indexPoly - count)%len(polygon)])
 
-        #Initalize list to be put into adjListMap
-        adjList = []
+            for i,point2 in enumerate([ q for q in reflexVertices if q not in polygon]):
+                testLine = [point[0], point[1], point2[0], point2[1]]
+                for edge in edgeList:
+                    #print "TEST STUFF: ",testLine, edge
+                    if testIntersect(testLine,edge):
+                        #print "intersect"
+                        break
+                else:
+                    #print "free"
+                    pointList.append(point2)
+            print pointList
+            for x in pointList:
+                adjList.append([reflexVertices.index(x)+1, np.linalg.norm(np.array(point) - np.array(x))])
+            adjList.sort(key = lambda x: x[0])
+            adjacencyListMap[index] = adjList
+    return vertexMap, adjacencyListMap
+'''
         # Test for visibility
         for i,point in enumerate(reflexVertices):
             if point == p:
@@ -121,14 +130,13 @@ def computeSPRoadmap(polygons, reflexVertices):
             for edge in edgeList:
                 print "TEST STUFF: ",testLine, edge
                 if testIntersect(testLine,edge):
+                    print "intersect"
                     break
             else:
+                print "free"
                 adjList.append([i+1,np.linalg.norm(np.array(point) - np.array(p))])
-        adjList.sort(key = lambda x: x[0])
         adjListMap[index+1] = adjList
-        
-    return vertexMap, adjListMap
-
+'''
 '''
 Perform uniform cost search 
 '''
