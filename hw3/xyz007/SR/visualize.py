@@ -71,22 +71,31 @@ def drawPolygons(polygons):
     for p in range(0, len(polygons)):
         patch = createPolygonPatch(polygons[p])
         ax.add_patch(patch)
-    createPossiblePaths(polygons)
+    createPaths(polygons)
 
     plt.show()
 
-def createPossiblePaths(polygons):
+def createPaths(polygons):
+    x1,y1,x2,y2 = float(sys.argv[2]),float(sys.argv[3]),float(sys.argv[4]),float(sys.argv[5])
+
+
     reflexVertices = spr.findReflexiveVertices(polygons)
     vertexMap, adjListMap = spr.computeSPRoadmap(polygons, reflexVertices)
-    for point in adjListMap:
-        for point2 in adjListMap[point]:
+    start, goal, updatedALMap = spr.updateRoadmap(polygons, vertexMap, adjListMap, x1, y1, x2, y2)
+
+    for point in updatedALMap:
+        for point2 in updatedALMap[point]:
             p1 = vertexMap[point]
-            print point2
+            #print point2
             p2 = vertexMap[point2[0]]
             xvert,yvert = [list(n) for n in zip(p1,p2)]
             plt.plot([xvert[0]/10,xvert[1]/10],[yvert[0]/10,yvert[1]/10],'-g')
-
-
+    path, length = spr.uniformCostSearch(updatedALMap, start, goal)
+    for index in range(0,len(path)-1):
+                p1 = vertexMap[path[index]]
+                p2 = vertexMap[path[index+1]]
+                xvert,yvert = [list(n) for n in zip(p1,p2)]
+                plt.plot([xvert[0]/10,xvert[1]/10],[yvert[0]/10,yvert[1]/10],'-r')
 
 if __name__ == "__main__":
     

@@ -37,19 +37,40 @@ def computeSPRoadmap(polygons, reflexVertices):
     def testIntersect(halfline, edge):
         x1,y1,x2,y2 = halfline[0],halfline[1],halfline[2],halfline[3]
         x3,y3,x4,y4 = edge[0],edge[1],edge[2],edge[3]
-
-        if [x1,y1] == [x3,y3] or [x1,y1] == [x4,y4] \
-            or [x2,y2] == [x3,y3] or [x2,y2] == [x4,y4]:
+        if [x1,y1] == [x3,y3] or [x1,y1] == [x4,y4] or [x2,y2] == [x3,y3] or [x2,y2] == [x4,y4]:
             return False
-
-        if max(x1,x2) <= min(x3,x4):
+        if max(x1,x2) < min(x3,x4):
             return False
         if x1-x2 == 0:
-            A1 = float("inf")
+            if x3 - x4 != 0:
+                if min(x3,x4)<x1 and max(x3,x4)>x1:
+                    mline = (y4-y3)/(x4-x3)
+                    bline = y3 - mline*x3
+                    ycheck = mline * x1 + bline
+                    if ycheck > min(y1,y2) and ycheck < max(y1,y2):
+                        return True
+                    else:
+                        return False
+                else:
+                    return False
+            else:
+                return False
         else:
             A1 = (y1-y2)/(x1-x2)
         if x3-x4 == 0:
-            A2 = float("inf")
+            if x1 - x2 != 0:
+                if min(x1,x2) < x3 and max(x1,x2) > x3:
+                    mline = (y2-y1)/(x2-x1)
+                    bline = y1 - mline*x1
+                    ycheck = mline * x3 + bline
+                    if ycheck > min(y3,y4) and ycheck < max(y3,y4):
+                        return True
+                    else:
+                        return False
+                else:
+                    return False
+            else:
+                return False
         else:
             A2 = (y3-y4)/(x3-x4)
         b1 = y1 - A1*x1
@@ -57,7 +78,7 @@ def computeSPRoadmap(polygons, reflexVertices):
         if A1 == A2:
             return False
         xa = (b2-b1)/(A1 - A2)
-        if xa <= max(min(x1,x2),min(x3,x4)) or xa >= min(max(x1,x2),max(x3,x4)):
+        if xa < max(min(x1,x2),min(x3,x4)) or xa > min(max(x1,x2),max(x3,x4)):
              return False
         else:
             return True
@@ -149,7 +170,7 @@ def uniformCostSearch(adjListMap, start, goal):
     while openSet:
         #print openSet 
         current = min(openSet,key = lambda x: openSet[x])
-        del openSet[current]
+        #print current, openSet
         closedSet.add(current)
         if current == goal:
             #print "I DIDIDIDID ITT"
@@ -158,15 +179,17 @@ def uniformCostSearch(adjListMap, start, goal):
         for point in adjListMap[current]:
             if point[0] in closedSet:
                 continue
-            retrace[point[0]] = [current, point[1]]
             #print point,  retrace[point[0]]
             if point[0] in openSet:
-                if point[1] < openSet[point[0]]:
-                    openSet[point[0]] = point[1]
-                retrace[point[0]] = [current, point[1]]
+                if point[1] + openSet[current] < openSet[point[0]]:
+                    openSet[point[0]] = point[1] + openSet[current]
+                    retrace[point[0]] = [current, point[1] + openSet[current]]
+                    #print "updated openset" , point[0],  openSet[point[0]]
             else:
-                openSet[point[0]] = point[1]
-                retrace[point[0]] = [current, point[1]]
+                openSet[point[0]] = point[1] + openSet[current]
+                retrace[point[0]] = [current, point[1] + openSet[current]]
+        del openSet[current]
+
 
     
     # Your code goes here. As the result, the function should
@@ -182,35 +205,117 @@ def uniformCostSearch(adjListMap, start, goal):
 '''
 Agument roadmap to include start and goal
 '''
-def updateRoadmap(adjListMap, x1, y1, x2, y2):
+def updateRoadmap(polygons, vertexMap, adjListMap, x1, y1, x2, y2):
     updatedALMap = dict()
     startLabel = 0
     goalLabel = -1
+    '''
+    x1 *= 10
+    y1 *= 10
+    x2 *= 10
+    y2 *= 10
+    '''
 
-    liststarts = []
-    listends = []
-    for vertex in vertexMap:
-        lengthstart = np.linalg.norm(np.array([x1,y1]) - np.array(vertexMap[vertex]))
-        liststarts.append([vertex,lengthstart])
-        lengthend = np.linalg.norm(np.array([x2,y2]) - np.array(vertexMap[vertex]))
-        listends.append([vertex,lengthend])
-
-    updatedALMap[startLabel] = [min(liststarts,key = lambda x: x[1])]
-    for point in adjListMap:
-        updatedALMap[point] = adjListMap[point]
+    def testIntersect(halfline, edge):
+        x1,y1,x2,y2 = halfline[0],halfline[1],halfline[2],halfline[3]
+        x3,y3,x4,y4 = edge[0],edge[1],edge[2],edge[3]
+        if [x1,y1] == [x3,y3] or [x1,y1] == [x4,y4] or [x2,y2] == [x3,y3] or [x2,y2] == [x4,y4]:
+            return False
+        if max(x1,x2) < min(x3,x4):
+            return False
+        if x1-x2 == 0:
+            if x3 - x4 != 0:
+                if min(x3,x4)<x1 and max(x3,x4)>x1:
+                    mline = (y4-y3)/(x4-x3)
+                    bline = y3 - mline*x3
+                    ycheck = mline * x1 + bline
+                    if ycheck > min(y1,y2) and ycheck < max(y1,y2):
+                        return True
+                    else:
+                        return False
+                else:
+                    return False
+            else:
+                return False
+        else:
+            A1 = (y1-y2)/(x1-x2)
+        if x3-x4 == 0:
+            if x1 - x2 != 0:
+                if min(x1,x2) < x3 and max(x1,x2) > x3:
+                    mline = (y2-y1)/(x2-x1)
+                    bline = y1 - mline*x1
+                    ycheck = mline * x3 + bline
+                    if ycheck > min(y3,y4) and ycheck < max(y3,y4):
+                        return True
+                    else:
+                        return False
+                else:
+                    return False
+            else:
+                return False
+        else:
+            A2 = (y3-y4)/(x3-x4)
+        b1 = y1 - A1*x1
+        b2 = y3 - A2*x3
+        if A1 == A2:
+            return False
+        xa = (b2-b1)/(A1 - A2)
+        if xa < max(min(x1,x2),min(x3,x4)) or xa > min(max(x1,x2),max(x3,x4)):
+             return False
+        else:
+            return True
+        
     # Your code goes here. Note that for convenience, we 
     # let start and goal have vertex labels 0 and -1,
     # respectively. Make sure you use these as your labels
     # for the start and goal vertices in the shortest path
     # roadmap. Note that what you do here is similar to
     # when you construct the roadmap. 
-    endConnect = min(listends,key = lambda x: x[1])
-    print endConnect
-    print listends
-    temp = [x[:] for x in adjListMap[endConnect[0]]]
-    temp.append([goalLabel,endConnect[1]])
-    updatedALMap[endConnect[0]] = temp
-    return startLabel, goalLabel, updatedALMap
+    
+
+    edgeList = []
+    for polygon in polygons:
+        for i,point in enumerate(polygon):
+            p2 = polygon[(i + 1)%len(polygon)]
+            edgeList.append([point[0],point[1],p2[0],p2[1]])
+
+    polygons.append([[x1,y1]])
+    polygons.append([[x2,y2]])
+    print polygons
+    vertexMap[startLabel] = [x1,y1]
+    vertexMap[goalLabel] = [x2,y2]
+    
+    # Loop though all vertices
+    for point in [[x2,y2,goalLabel],[x1,y1,startLabel]]:
+        pointList = []
+        adjList = []
+        #Test for line intersection
+        for Rpoint in [ m for m in vertexMap if vertexMap[m] != point[0:2]]:
+            testLine = [point[0], point[1], vertexMap[Rpoint][0], vertexMap[Rpoint][1]]
+            for edge in edgeList:
+                #print "TEST STUFF: ",testLine, edge
+                if testIntersect(testLine,edge):
+                    #print "intersect"
+                    break
+            else:
+                #print "free"
+                pointList.append(Rpoint)
+        #print pointList
+        for x in pointList:
+            eucLen = np.linalg.norm(np.array(point[0:2]) - np.array(vertexMap[x]))
+            adjList.append([x, eucLen])
+            temp = []
+            if x in adjListMap:
+                temp = [ m[:] for m in adjListMap[x]]
+            temp.append([point[2],eucLen])
+            temp.sort(key = lambda x: x[0])
+            adjListMap[x] = temp
+
+        adjList.sort(key = lambda x: x[0])
+        adjListMap[point[2]] = adjList
+        #print adjList
+
+    return startLabel, goalLabel, adjListMap
 
 if __name__ == "__main__":
     
@@ -257,7 +362,7 @@ if __name__ == "__main__":
     print ""
 
     # Update roadmap
-    start, goal, updatedALMap = updateRoadmap(adjListMap, x1, y1, x2, y2)
+    start, goal, updatedALMap = updateRoadmap(polygons, vertexMap, adjListMap, x1, y1, x2, y2)
     print "Updated roadmap:"
     print str(updatedALMap)
     print ""
