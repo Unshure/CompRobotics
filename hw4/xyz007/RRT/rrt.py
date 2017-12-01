@@ -3,7 +3,9 @@ import sys
 import matplotlib.pyplot as plt
 from matplotlib.path import Path
 import matplotlib.patches as patches
+from matplotlib import collections  as mc
 import numpy as np
+import math
 
 '''
 Set up matplotlib to create a plot with an empty square
@@ -23,7 +25,7 @@ def setupPlot():
     return fig, ax
 
 '''
-Make a patch for a single pology 
+Make a patch for a single pology
 '''
 def createPolygonPatch(polygon, color):
     verts = []
@@ -41,39 +43,200 @@ def createPolygonPatch(polygon, color):
     patch = patches.PathPatch(path, facecolor=color, lw=1)
 
     return patch
-    
+
 
 '''
-Render the problem  
+Render the problem
 '''
 def drawProblem(robotStart, robotGoal, polygons):
     fig, ax = setupPlot()
     patch = createPolygonPatch(robotStart, 'green')
-    ax.add_patch(patch)    
+    ax.add_patch(patch)
     patch = createPolygonPatch(robotGoal, 'red')
-    ax.add_patch(patch)    
+    ax.add_patch(patch)
     for p in range(0, len(polygons)):
         patch = createPolygonPatch(polygons[p], 'gray')
-        ax.add_patch(patch)    
+        ax.add_patch(patch)
     plt.show()
 
+def find_closest_point(P0, P1, P2):
+
+    P0 = np.array(P0)
+    P1 = np.array(P1)
+    P2 = np.array(P2)
+
+    A = P2 - P0
+    B = P1 - P0
+
+    B_inverse = P0 - P1
+    C = P2 - P1
+
+    world_frame = np.array([1,0]) - np.array([0,0])
+
+    ab_dot = np.dot(A,B)
+    cb_dot = np.dot(B_inverse,C)
+
+    #Point is over the line
+    if(ab_dot > 0 and cb_dot > 0):
+        projection = ab_dot/np.linalg.norm(B)
+        angle = np.degrees(math.acos(np.dot(B,world_frame)/(np.linalg.norm(B) * np.linalg.norm(world_frame))))
+        distance = math.sqrt(math.pow(np.linalg.norm(A),2) - math.pow(projection,2))
+
+        new_point = [projection * math.cos(angle), projection * math.sin(angle)] + P0
+
+        print("New point location: {}".format(new_point))
+        print("Distance to line: {}".format(distance))
+
+        return new_point, True, distance
+
+    #Point is closer to vertex
+    else:
+        distance_to_P0 = dist = np.linalg.norm(P2-P0)
+        distance_to_P1 = dist = np.linalg.norm(P2-P1)
+
+        if distance_to_P0 <= distance_to_P1:
+            print("Distance to P0 is closer: {}".format(distance_to_P0))
+            return P0, False, distance_to_P0
+        else:
+            print("Distance to P1 is closer: {}".format(distance_to_P1))
+            return P1, False, distance_to_P1
+
 '''
-Grow a simple RRT 
+Grow a simple RRT
 '''
 def growSimpleRRT(points):
     newPoints = dict()
     adjListMap = dict()
-    
-    # Your code goes here
-    
+    segment_list = []
+
+    #Connect first two points by default
+    newPoints[1] = points[1]
+    newPoints[2] = points[2]
+
+    adjListMap[1] = [2]
+    adjListMap[2] = []
+
+    new_segment = dict()
+    new_segment['point1'] = 1
+    new_segment['point2'] = 2
+    new_segment['line'] = [points[1],points[2]]
+
+    segment_list.append(new_segment)
+
+    for point_index in range(3,len(points) + 1):
+        point = points[point_index]
+
+        #Add it to the new_points_list
+        index = len(newPoints)+1
+        newPoints[index] = point
+
+        adjListMap[index] = []
+
+        closest_distance = float("inf")
+        closest_point_index = -1
+        final_closest_point = [-1,-1]
+        final_is_new = False
+        closest_point_1 = []
+        closest_point_2 = []
+
+        for segment in segment_list:
+
+            point_1 = new_segment['point1']
+            point_2 = new_segment['point2']
+            line = new_segment['line']
+            closest_point, is_new_point, distance = find_closest_point(line[0], line[1], point)
+
+            print("Meow Meow")
+            print("New: {}, Segment {} -> {}, Closest: {}, IsNew: {}, Distance: {}").format(point, line[0], line[1], closest_point, is_new_point, distance)
+
+            closest_index = [-1,-1]
+
+            if np.array_equal(closest_point,line[0]):
+                closest_index = point_1
+            elif np.array_equal(closest_point,line[1]):
+                closest_index = point_2
+
+            if distance < closest_distance:
+                closest_distance = distance
+                closest_point_index = closest_index
+                final_closest_point = closest_point
+                final_is_new = is_new_point
+                closest_point_1 = point_1
+                closest_point_2 = point_2
+
+        if final_is_new:
+            new_point_index = len(newPoints)+1
+            newPoints[new_point_index] = final_closest_point
+
+            adjListMap[new_point_index] = [index]
+
+            new_segment = dict()
+            new_segment['point1'] = new_point_index
+            new_segment['point2'] = index
+            new_segment['line'] = [newPoints[new_point_index], newPoints[index]]
+            segment_list.append(new_segment)
+
+            if closest_point_2 in adjListMap[closest_point_1]:
+                adjListMap[closest_point_1].remove(closest_point_2)
+
+                for index, segment in enumerate(segment_list):
+                    if segment['point1'] == closest_point_1 and segment['point2'] == closest_point_2:
+                        del(segment_list[index])
+
+                adjListMap[closest_point_1].append(new_point_index)
+                adjListMap[new_point_index].append(closest_point_2)
+
+                new_segment = dict()
+                new_segment['point1'] = closest_point_1
+                new_segment['point2'] = new_point_index
+                new_segment['line'] = [newPoints[closest_point_1],newPoints[new_point_index]]
+                segment_list.append(new_segment)
+
+                new_segment = dict()
+                new_segment['point1'] = new_point_index
+                new_segment['point2'] = closest_point_2
+                new_segment['line'] = [newPoints[new_point_index],newPoints[closest_point_2]]
+                segment_list.append(new_segment)
+
+            elif closest_point_1 in adjListMap[closest_point_2]:
+                adjListMap[closest_point_2].remove(closest_point_1)
+                adjListMap[closest_point_2].append(new_point_index)
+                adjListMap[new_point_index].append(closest_point_1)
+
+                for index, segment in enumerate(segment_list):
+                    if segment['point1'] == closest_point_2 and segment['point2'] == closest_point_1:
+                        del(segment_list[index])
+
+                new_segment = dict()
+                new_segment['point1'] = closest_point_2
+                new_segment['point2'] = new_point_index
+                new_segment['line'] = [newPoints[closest_point_2],newPoints[new_point_index]]
+                segment_list.append(new_segment)
+
+                new_segment = dict()
+                new_segment['point1'] = new_point_index
+                new_segment['point2'] = closest_point_1
+                new_segment['line'] = [newPoints[new_point_index],newPoints[closest_point_1]]
+                segment_list.append(new_segment)
+
+        else: #Not new point
+            adjListMap[closest_point_index].append(index)
+            new_segment = dict()
+            new_segment['point1'] = closest_point_index
+            new_segment['point2'] = index
+            new_segment['line'] = [newPoints[closest_point_index],newPoints[index]]
+            segment_list.append(new_segment)
+
+    print(adjListMap)
+
     return newPoints, adjListMap
 
 '''
-Perform basic search 
+Perform basic search
 '''
 def basicSearch(tree, start, goal):
     path = []
-    
+
     # Your code goes here. As the result, the function should
     # return a list of vertex labels, e.g.
     #
@@ -81,19 +244,35 @@ def basicSearch(tree, start, goal):
     #
     # in which 23 would be the label for the start and 37 the
     # label for the goal.
-    
+
     return path
 
 '''
 Display the RRT and Path
 '''
 def displayRRTandPath(points, tree, path, robotStart = None, robotGoal = None, polygons = None):
-    
+
     # Your code goes here
     # You could start by copying code from the function
     # drawProblem and modify it to do what you need.
     # You should draw the problem when applicable.
-    return 
+
+    lines = []
+
+    for parent in tree:
+        for kid in tree[parent]:
+
+            point_1 = points[parent]
+            point_2 = points[kid]
+            lines.append([[point_1[0]/10.00, point_1[1]/10.00], [point_2[0]/10.00, point_2[1]/10.00]])
+
+    lc = mc.LineCollection(lines)
+    fig, ax = setupPlot()
+    ax.add_collection(lc)
+
+    plt.show()
+
+    return
 
 '''
 Collision checking
@@ -101,7 +280,7 @@ Collision checking
 def isCollisionFree(robot, point, obstacles):
 
     # Your code goes here.
-    
+
     return False
 
 '''
@@ -113,16 +292,16 @@ def RRT(robot, obstacles, startPoint, goalPoint):
     tree = dict()
     path = []
     # Your code goes here.
-    
+
     return points, tree, path
 
 if __name__ == "__main__":
-    
+
     # Retrive file name for input data
     if(len(sys.argv) < 6):
         print "Five arguments required: python spr.py [env-file] [x1] [y1] [x2] [y2]"
         exit()
-    
+
     filename = sys.argv[1]
     x1 = float(sys.argv[2])
     y1 = float(sys.argv[3])
@@ -167,46 +346,51 @@ if __name__ == "__main__":
     # Example points for calling growSimpleRRT
     # You should expect many mroe points, e.g., 200-500
     points = dict()
+    # points[1] = (5, 5)
+    # points[2] = (7, 8.2)
+    # points[3] = (6.5, 5.2)
+    # points[4] = (0.3, 4)
+    # points[5] = (6, 3.7)
+    # points[6] = (9.7, 6.4)
+    # points[7] = (4.4, 2.8)
+    # points[8] = (9.1, 3.1)
+    # points[9] = (8.1, 6.5)
+    # points[10] = (0.7, 5.4)
+    # points[11] = (5.1, 3.9)
+    # points[12] = (2, 6)
+    # points[13] = (0.5, 6.7)
+    # points[14] = (8.3, 2.1)
+    # points[15] = (7.7, 6.3)
+    # points[16] = (7.9, 5)
+    # points[17] = (4.8, 6.1)
+    # points[18] = (3.2, 9.3)
+    # points[19] = (7.3, 5.8)
+    # points[20] = (9, 0.6)
+
     points[1] = (5, 5)
-    points[2] = (7, 8.2)
-    points[3] = (6.5, 5.2)
-    points[4] = (0.3, 4)
-    points[5] = (6, 3.7)
-    points[6] = (9.7, 6.4)
-    points[7] = (4.4, 2.8)
-    points[8] = (9.1, 3.1)
-    points[9] = (8.1, 6.5)
-    points[10] = (0.7, 5.4)
-    points[11] = (5.1, 3.9)
-    points[12] = (2, 6)
-    points[13] = (0.5, 6.7)
-    points[14] = (8.3, 2.1)
-    points[15] = (7.7, 6.3)
-    points[16] = (7.9, 5)
-    points[17] = (4.8, 6.1)
-    points[18] = (3.2, 9.3)
-    points[19] = (7.3, 5.8)
-    points[20] = (9, 0.6)
+    points[2] = (6, 6)
+    points[3] = (8, 6)
+    points[4] = (7, 7)
+    points[5] = (6, 8)
+    points[6] = (8, 8)
+
 
     # Printing the points
-    print "" 
+    print ""
     print "The input points are:"
     print str(points)
     print ""
-    
+
     points, adjListMap = growSimpleRRT(points)
 
-    # Search for a solution  
-    path = basicSearch(adjListMap, 1, 20)    
+    # Search for a solution
+    path = basicSearch(adjListMap, 1, 20)
 
-    # Your visualization code 
-    displayRRTandPath(points, adjListMap, path) 
+    # Your visualization code
+    displayRRTandPath(points, adjListMap, path)
 
     # Solve a real RRT problem
     RRT(robot, obstacles, (x1, y1), (x2, y2))
-    
-    # Your visualization code 
-    displayRRTandPath(points, adjListMap, path, robotStart, robotGoal, obstacles) 
 
-
-
+    # Your visualization code
+    displayRRTandPath(points, adjListMap, path, robotStart, robotGoal, obstacles)
