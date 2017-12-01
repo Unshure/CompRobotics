@@ -160,9 +160,9 @@ def uniformCostSearch(adjListMap, start, goal):
         reversePath = []
         Length = 0
         reversePath.append(current)
+        Length = retrace[current][1]
         while current != start:
             reversePath.append(retrace[current][0])
-            Length += retrace[current][1]
             current = retrace[current][0]
         reversePath.reverse()
         return reversePath, Length
