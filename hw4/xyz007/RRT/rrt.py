@@ -86,7 +86,7 @@ def find_closest_point(P0, P1, P2):
 
         # new_point = [projection * math.cos(np.deg2rad(angle)), projection * math.sin(np.deg2rad(angle))] + P0
 
-        if (P1[1] - P0[1]) >= 0 and (P1[0] - P0[0]):
+        if (P1[1] - P0[1]) >= 0:
             new_point = [projection * math.cos(np.deg2rad(angle)), projection * math.sin(np.deg2rad(angle))] + P0
         else:
             new_point = P0 - [projection * math.cos(np.deg2rad(180 - angle)), projection * math.sin(np.deg2rad(180 - angle))]
@@ -255,6 +255,39 @@ def basicSearch(tree, start, goal):
     # in which 23 would be the label for the start and 37 the
     # label for the goal.
 
+    queue = []
+    closed_list = dict()
+
+    #Add the start to the goal
+    queue.append((start,None))
+    while(len(queue) != 0):
+        # current_distance, potential_node, parent = heapq.heappop(queue)
+        potential_node, parent = queue.pop(0)
+
+        if(potential_node not in closed_list):
+        # if(closed_list[potential_node] != None):
+            closed_list[potential_node] = parent
+            # pathLength = current_distance
+            if potential_node == goal:
+                break;
+            neighbors = adjListMap[potential_node]
+            for neighbor in neighbors:
+                # neighbor_index = neighbor[0]
+                # neighbor_distance = neighbor[1]
+                if neighbor not in closed_list:
+                # if closed_list[neighbor_index] != None:
+                    queue.append((neighbor,potential_node))
+                    # heapq.heappush(queue, (neighbor_distance + current_distance,neighbor_index, potential_node))
+
+    index = goal
+    while True:
+        path.insert(0, index)
+        index = closed_list[index]
+        if index == None:
+            break
+
+    print("This: {}").format(path)
+
     return path
 
 '''
@@ -268,6 +301,7 @@ def displayRRTandPath(points, tree, path, robotStart = None, robotGoal = None, p
     # You should draw the problem when applicable.
 
     lines = []
+    path_lines = []
 
     for parent in tree:
         for kid in tree[parent]:
@@ -276,9 +310,21 @@ def displayRRTandPath(points, tree, path, robotStart = None, robotGoal = None, p
             point_2 = points[kid]
             lines.append([[point_1[0]/10.00, point_1[1]/10.00], [point_2[0]/10.00, point_2[1]/10.00]])
 
+    for parent in path:
+        for kid in tree[parent]:
+
+            point_1 = points[parent]
+            point_2 = points[kid]
+            path_lines.append([[point_1[0]/10.00, point_1[1]/10.00], [point_2[0]/10.00, point_2[1]/10.00]])
+
     lc = mc.LineCollection(lines)
+    pc = mc.LineCollection(path_lines, colors='green', linewidths=4)
+
+    print(path)
+
     fig, ax = setupPlot()
     ax.add_collection(lc)
+    ax.add_collection(pc)
 
     plt.show()
 
@@ -377,14 +423,14 @@ if __name__ == "__main__":
     points[19] = (7.3, 5.8)
     points[20] = (9, 0.6)
 
-    # for i in range(1,1000):
+    # for i in range(1,300):
     #     point_x = random.uniform(0, 10)
     #     point_y = random.uniform(0, 10)
     #     points[i] = (point_x, point_y)
 
-    # points[1] = (5, 5)
+    # points[1] = (4.9, 5)
     # points[2] = (5, 7)
-    # points[3] = (4, 6)
+    # points[3] = (6, 6)
 
     # points[4] = (7, 7)
     # points[5] = (6, 8)
@@ -403,6 +449,8 @@ if __name__ == "__main__":
 
     # Search for a solution
     path = basicSearch(adjListMap, 1, 20)
+
+    print("1: {}").format(path)
 
     # Your visualization code
     displayRRTandPath(points, adjListMap, path)
