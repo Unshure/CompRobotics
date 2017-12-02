@@ -7,9 +7,9 @@ import math
 # P2 = numpy.array([1,2])
 
 #Overline - line is angled 45deg
-P0 = numpy.array([6.,6.])
-P1 = numpy.array([8.,6.])
-P2 = numpy.array([7.,6.5])
+P0 = numpy.array([6.5,5.2])
+P1 = numpy.array([6,3.7])
+P2 = numpy.array([9.1,3.1])
 
 #To Left of line
 # P0 = numpy.array([1,0])
@@ -30,6 +30,8 @@ def closest_point(P0, P1, P2):
     ab_dot = numpy.dot(A,B)
     cb_dot = numpy.dot(B_inverse,C)
 
+    print(ab_dot, cb_dot)
+
     #Point is over the line
     if(ab_dot > 0 and cb_dot > 0):
 
@@ -37,7 +39,12 @@ def closest_point(P0, P1, P2):
         angle = numpy.degrees(math.acos(numpy.dot(B,world_frame)/(numpy.linalg.norm(B) * numpy.linalg.norm(world_frame))))
         distance = math.sqrt(math.pow(numpy.linalg.norm(A),2) - math.pow(projection,2))
 
-        new_point = [projection * math.cos(angle), projection * math.sin(angle)] + P0
+        print(angle)
+
+        if (P1[1] - P0[1]) >= 0 and (P1[0] - P0[0]):
+            new_point = [projection * math.cos(numpy.deg2rad(angle)), projection * math.sin(numpy.deg2rad(angle))] + P0
+        else:
+            new_point = P0 - [projection * math.cos(numpy.deg2rad(180 - angle)), projection * math.sin(numpy.deg2rad(180 - angle))]
 
         print("New point location: {}".format(new_point))
         print("Distance to line: {}".format(distance))
