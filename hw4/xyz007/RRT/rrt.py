@@ -6,6 +6,7 @@ import matplotlib.patches as patches
 from matplotlib import collections  as mc
 import numpy as np
 import math
+import random
 
 '''
 Set up matplotlib to create a plot with an empty square
@@ -80,12 +81,18 @@ def find_closest_point(P0, P1, P2):
     if(ab_dot > 0 and cb_dot > 0):
         projection = ab_dot/np.linalg.norm(B)
         angle = np.degrees(math.acos(np.dot(B,world_frame)/(np.linalg.norm(B) * np.linalg.norm(world_frame))))
+        # angle = np.degrees(math.acos(np.dot(B,world_frame)/(np.linalg.norm(B) * np.linalg.norm(world_frame))))
         distance = math.sqrt(math.pow(np.linalg.norm(A),2) - math.pow(projection,2))
 
-        new_point = [projection * math.cos(angle), projection * math.sin(angle)] + P0
+        # new_point = [projection * math.cos(np.deg2rad(angle)), projection * math.sin(np.deg2rad(angle))] + P0
 
-        print("New point location: {}".format(new_point))
-        print("Distance to line: {}".format(distance))
+        if (P1[1] - P0[1]) >= 0:
+            new_point = [projection * math.cos(np.deg2rad(angle)), projection * math.sin(np.deg2rad(angle))] + P0
+        else:
+            new_point = P0 - [projection * math.cos(np.deg2rad(180 - angle)), projection * math.sin(np.deg2rad(180 - angle))]
+
+        # print("New point location: {}".format(new_point))
+        # print("Distance to line: {}".format(distance))
 
         return new_point, True, distance
 
@@ -95,10 +102,10 @@ def find_closest_point(P0, P1, P2):
         distance_to_P1 = dist = np.linalg.norm(P2-P1)
 
         if distance_to_P0 <= distance_to_P1:
-            print("Distance to P0 is closer: {}".format(distance_to_P0))
+            # print("Distance to P0 is closer: {}".format(distance_to_P0))
             return P0, False, distance_to_P0
         else:
-            print("Distance to P1 is closer: {}".format(distance_to_P1))
+            # print("Distance to P1 is closer: {}".format(distance_to_P1))
             return P1, False, distance_to_P1
 
 '''
@@ -139,15 +146,18 @@ def growSimpleRRT(points):
         closest_point_1 = []
         closest_point_2 = []
 
+        # print("\n\n Here")
+        # print(segment_list)
+
         for segment in segment_list:
 
-            point_1 = new_segment['point1']
-            point_2 = new_segment['point2']
-            line = new_segment['line']
+            point_1 = segment['point1']
+            point_2 = segment['point2']
+            line = segment['line']
             closest_point, is_new_point, distance = find_closest_point(line[0], line[1], point)
 
-            print("Meow Meow")
-            print("New: {}, Segment {} -> {}, Closest: {}, IsNew: {}, Distance: {}").format(point, line[0], line[1], closest_point, is_new_point, distance)
+            # print("Meow Meow")
+            # print("New: {}, Segment {} -> {}, Closest: {}, IsNew: {}, Distance: {}").format(point, line[0], line[1], closest_point, is_new_point, distance)
 
             closest_index = [-1,-1]
 
@@ -227,7 +237,7 @@ def growSimpleRRT(points):
             new_segment['line'] = [newPoints[closest_point_index],newPoints[index]]
             segment_list.append(new_segment)
 
-    print(adjListMap)
+    # print(adjListMap)
 
     return newPoints, adjListMap
 
@@ -245,6 +255,39 @@ def basicSearch(tree, start, goal):
     # in which 23 would be the label for the start and 37 the
     # label for the goal.
 
+    queue = []
+    closed_list = dict()
+
+    #Add the start to the goal
+    queue.append((start,None))
+    while(len(queue) != 0):
+        # current_distance, potential_node, parent = heapq.heappop(queue)
+        potential_node, parent = queue.pop(0)
+
+        if(potential_node not in closed_list):
+        # if(closed_list[potential_node] != None):
+            closed_list[potential_node] = parent
+            # pathLength = current_distance
+            if potential_node == goal:
+                break;
+            neighbors = adjListMap[potential_node]
+            for neighbor in neighbors:
+                # neighbor_index = neighbor[0]
+                # neighbor_distance = neighbor[1]
+                if neighbor not in closed_list:
+                # if closed_list[neighbor_index] != None:
+                    queue.append((neighbor,potential_node))
+                    # heapq.heappush(queue, (neighbor_distance + current_distance,neighbor_index, potential_node))
+
+    index = goal
+    while True:
+        path.insert(0, index)
+        index = closed_list[index]
+        if index == None:
+            break
+
+    print("This: {}").format(path)
+
     return path
 
 '''
@@ -258,6 +301,7 @@ def displayRRTandPath(points, tree, path, robotStart = None, robotGoal = None, p
     # You should draw the problem when applicable.
 
     lines = []
+    path_lines = []
 
     for parent in tree:
         for kid in tree[parent]:
@@ -266,9 +310,21 @@ def displayRRTandPath(points, tree, path, robotStart = None, robotGoal = None, p
             point_2 = points[kid]
             lines.append([[point_1[0]/10.00, point_1[1]/10.00], [point_2[0]/10.00, point_2[1]/10.00]])
 
+    for parent in path:
+        for kid in tree[parent]:
+
+            point_1 = points[parent]
+            point_2 = points[kid]
+            path_lines.append([[point_1[0]/10.00, point_1[1]/10.00], [point_2[0]/10.00, point_2[1]/10.00]])
+
     lc = mc.LineCollection(lines)
+    pc = mc.LineCollection(path_lines, colors='green', linewidths=4)
+
+    print(path)
+
     fig, ax = setupPlot()
     ax.add_collection(lc)
+    ax.add_collection(pc)
 
     plt.show()
 
@@ -346,34 +402,42 @@ if __name__ == "__main__":
     # Example points for calling growSimpleRRT
     # You should expect many mroe points, e.g., 200-500
     points = dict()
-    # points[1] = (5, 5)
-    # points[2] = (7, 8.2)
-    # points[3] = (6.5, 5.2)
-    # points[4] = (0.3, 4)
-    # points[5] = (6, 3.7)
-    # points[6] = (9.7, 6.4)
-    # points[7] = (4.4, 2.8)
-    # points[8] = (9.1, 3.1)
-    # points[9] = (8.1, 6.5)
-    # points[10] = (0.7, 5.4)
-    # points[11] = (5.1, 3.9)
-    # points[12] = (2, 6)
-    # points[13] = (0.5, 6.7)
-    # points[14] = (8.3, 2.1)
-    # points[15] = (7.7, 6.3)
-    # points[16] = (7.9, 5)
-    # points[17] = (4.8, 6.1)
-    # points[18] = (3.2, 9.3)
-    # points[19] = (7.3, 5.8)
-    # points[20] = (9, 0.6)
-
     points[1] = (5, 5)
-    points[2] = (6, 6)
-    points[3] = (8, 6)
-    points[4] = (7, 7)
-    points[5] = (6, 8)
-    points[6] = (8, 8)
+    points[2] = (7, 8.2)
+    points[3] = (6.5, 5.2)
+    points[4] = (0.3, 4)
+    points[5] = (6, 3.7)
+    points[6] = (9.7, 6.4)
+    points[7] = (4.4, 2.8)
+    points[8] = (9.1, 3.1)
+    points[9] = (8.1, 6.5)
+    points[10] = (0.7, 5.4)
+    points[11] = (5.1, 3.9)
+    points[12] = (2, 6)
+    points[13] = (0.5, 6.7)
+    points[14] = (8.3, 2.1)
+    points[15] = (7.7, 6.3)
+    points[16] = (7.9, 5)
+    points[17] = (4.8, 6.1)
+    points[18] = (3.2, 9.3)
+    points[19] = (7.3, 5.8)
+    points[20] = (9, 0.6)
 
+    # for i in range(1,300):
+    #     point_x = random.uniform(0, 10)
+    #     point_y = random.uniform(0, 10)
+    #     points[i] = (point_x, point_y)
+
+    # points[1] = (4.9, 5)
+    # points[2] = (5, 7)
+    # points[3] = (6, 6)
+
+    # points[4] = (7, 7)
+    # points[5] = (6, 8)
+    # points[6] = (8, 8)
+    # points[7] = (7.3, 6.5)
+    # points[8] = (7, 7.5)
+    # points[9] = (6, 6.5)
 
     # Printing the points
     print ""
@@ -385,6 +449,8 @@ if __name__ == "__main__":
 
     # Search for a solution
     path = basicSearch(adjListMap, 1, 20)
+
+    print("1: {}").format(path)
 
     # Your visualization code
     displayRRTandPath(points, adjListMap, path)
