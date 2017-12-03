@@ -333,11 +333,24 @@ def displayRRTandPath(points, tree, path, robotStart = None, robotGoal = None, p
 '''
 Collision checking
 '''
+
+def checkIntersect(line1, line2):
+
+    #Do something here
 def isCollisionFree(robot, point, obstacles):
 
-    # Your code goes here.
-
-    return False
+    obstList = []
+    for obstacle in obstacles:
+        for index,pt1 in enumerate(obstacle):
+            nextindex = (index+1)%len(obstacle)
+            obstList.append((pt1[0],pt1[1],obstacle[nextindex][0],obstacle[nextindex][1]))
+    for i,p in enumerate(robot):
+        nexti = (i+1) % len(robot)
+        roboedge = ((point[0] + p[0],point[1] + p[1],point[0] +robot[nexti][0],point[1] + robot[nexti][1]))
+        for edge in obstList:
+            if not checkIntersect(roboedge,edge):
+                return False
+    return True
 
 '''
 The full RRT algorithm

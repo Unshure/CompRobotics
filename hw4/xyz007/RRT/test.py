@@ -8,7 +8,7 @@ import math
 
 #Overline - line is angled 45deg
 P0 = numpy.array([6.5,5.2])
-P1 = numpy.array([6,3.7])
+P1 = numpy.array([6.5,3.7])
 P2 = numpy.array([9.1,3.1])
 
 #To Left of line
