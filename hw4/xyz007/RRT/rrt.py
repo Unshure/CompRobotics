@@ -335,20 +335,45 @@ Collision checking
 '''
 
 def checkIntersect(line1, line2):
+    xdiff = (line1[0][0] - line1[1][0], line2[0][0] - line2[1][0])
+    ydiff = (line1[0][1] - line1[1][1], line2[0][1] - line2[1][1]) #Typo was here
+
+    def det(a, b):
+        return a[0] * b[1] - a[1] * b[0]
+
+    div = det(xdiff, ydiff)
+    if div == 0:
+       return False
+
+    d = (det(*line1), det(*line2))
+    x = det(d, xdiff) / div
+    y = det(d, ydiff) / div
+    if x > min(line1[0][0],line1[1][0]) and x < max(line1[0][0],line1[1][0]) and y > min(line1[0][1],line1[1][1]) and y < max(line1[0][1],line1[1][1]):
+        if x > min(line2[0][0],line2[1][0]) and x < max(line2[0][0],line2[1][0]) and y > min(line2[0][1],line2[1][1]) and y < max(line2[0][1],line2[1][1]):
+            return True
+
+    return False
 
     #Do something here
-def isCollisionFree(robot, point, obstacles):
 
+def isCollisionFree(robot, point, obstacles):
+    print(point)
     obstList = []
+
     for obstacle in obstacles:
         for index,pt1 in enumerate(obstacle):
             nextindex = (index+1)%len(obstacle)
-            obstList.append((pt1[0],pt1[1],obstacle[nextindex][0],obstacle[nextindex][1]))
+            obstList.append([[pt1[0],pt1[1]],[obstacle[nextindex][0],obstacle[nextindex][1]]])
+
     for i,p in enumerate(robot):
         nexti = (i+1) % len(robot)
-        roboedge = ((point[0] + p[0],point[1] + p[1],point[0] +robot[nexti][0],point[1] + robot[nexti][1]))
+        roboedge = [[point[0] + p[0],point[1] + p[1]],[point[0] +robot[nexti][0],point[1] + robot[nexti][1]]]
         for edge in obstList:
-            if not checkIntersect(roboedge,edge):
+            print(roboedge)
+            print(edge)
+            if checkIntersect(roboedge,edge):
+                print(roboedge)
+                print(edge)
                 return False
     return True
 
@@ -458,6 +483,8 @@ if __name__ == "__main__":
     print str(points)
     print ""
 
+    print isCollisionFree(robot,(2,3), obstacles)
+    '''
     points, adjListMap = growSimpleRRT(points)
 
     # Search for a solution
@@ -473,3 +500,4 @@ if __name__ == "__main__":
 
     # Your visualization code
     displayRRTandPath(points, adjListMap, path, robotStart, robotGoal, obstacles)
+'''
