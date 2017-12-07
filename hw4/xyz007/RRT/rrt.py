@@ -318,15 +318,14 @@ def displayRRTandPath(points, tree, path, robotStart = None, robotGoal = None, p
             point_2 = points[kid]
             lines.append([[point_1[0]/10.00, point_1[1]/10.00], [point_2[0]/10.00, point_2[1]/10.00]])
 
-    for parent in path:
-        for kid in tree[parent]:
+    for i in range(0,len(path)-1):
 
-            point_1 = points[parent]
-            point_2 = points[kid]
+            point_1 = points[path[i]]
+            point_2 = points[path[i+1]]
             path_lines.append([[point_1[0]/10.00, point_1[1]/10.00], [point_2[0]/10.00, point_2[1]/10.00]])
 
     lc = mc.LineCollection(lines)
-    pc = mc.LineCollection(path_lines, colors='green', linewidths=4)
+    # pc = mc.LineCollection(path_lines, colors='red', linewidths=2)
 
     print(path)
 
@@ -387,6 +386,26 @@ def isCollisionFree(robot, point, obstacles):
                 return False
     return True
 
+def point_is_in_obstacle(point, obstacles):
+
+    P0 = point
+    P1 = [10,point[1]]
+    ray = [[P0[0],P0[1]],[P1[0],P1[1]]]
+
+    counter = 0
+
+    for obstacle in obstacles:
+        for index,pt1 in enumerate(obstacle):
+            nextindex = (index+1)%len(obstacle)
+            segment = [[pt1[0],pt1[1]],[obstacle[nextindex][0],obstacle[nextindex][1]]]
+            if checkIntersect(segment, ray):
+                counter = counter + 1
+
+    if (counter % 2) != 0:
+        return True
+    else:
+        return False
+    
 '''
 The full RRT algorithm
 '''
@@ -500,13 +519,14 @@ if __name__ == "__main__":
     print ""
 
     print isCollisionFree(robot,(2,3), obstacles)
-    '''
+
     points, adjListMap = growSimpleRRT(points)
 
     # Search for a solution
     path = basicSearch(adjListMap, 1, 20)
 
-    print("1: {}").format(path)
+    print("Path: {}").format(path)
+    print("NewPoints: {}").format(points)
 
     # Your visualization code
     displayRRTandPath(points, adjListMap, path)
@@ -516,4 +536,3 @@ if __name__ == "__main__":
 
     # Your visualization code
     displayRRTandPath(points, adjListMap, path, robotStart, robotGoal, obstacles)
-'''
