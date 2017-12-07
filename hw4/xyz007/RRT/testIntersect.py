@@ -15,9 +15,8 @@ def line_intersection(line1, line2):
     d = (det(*line1), det(*line2))
     x = det(d, xdiff) / div
     y = det(d, ydiff) / div
-    if x > min(line1[0][0],line1[1][0]) and x < max(line1[0][0],line1[1][0]) and y > min(line1[0][1],line1[1][1]) and y < max(line1[0][1],line1[1][1]):
-        print("ppop")
-        if x > min(line2[0][0],line2[1][0]) and x < max(line2[0][0],line2[1][0]) and y > min(line2[0][1],line2[1][1]) and y < max(line2[0][1],line2[1][1]):
+    if x >= min(line1[0][0],line1[1][0]) and x <= max(line1[0][0],line1[1][0]) and y >= min(line1[0][1],line1[1][1]) and y <= max(line1[0][1],line1[1][1]):
+        if x >= min(line2[0][0],line2[1][0]) and x <= max(line2[0][0],line2[1][0]) and y >= min(line2[0][1],line2[1][1]) and y <= max(line2[0][1],line2[1][1]):
             return True
 
     return False

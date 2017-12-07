@@ -112,9 +112,17 @@ def find_closest_point(P0, P1, P2):
 Grow a simple RRT
 '''
 def growSimpleRRT(points):
+    
     newPoints = dict()
     adjListMap = dict()
     segment_list = []
+
+    if len(points) < 2:
+        if len(points) == 1:
+            adjListMap[1] = list()
+            return points, adjListMap
+        else:
+            return points, adjListMap
 
     #Connect first two points by default
     newPoints[1] = points[1]
@@ -348,8 +356,8 @@ def checkIntersect(line1, line2):
     d = (det(*line1), det(*line2))
     x = det(d, xdiff) / div
     y = det(d, ydiff) / div
-    if x > min(line1[0][0],line1[1][0]) and x < max(line1[0][0],line1[1][0]) and y > min(line1[0][1],line1[1][1]) and y < max(line1[0][1],line1[1][1]):
-        if x > min(line2[0][0],line2[1][0]) and x < max(line2[0][0],line2[1][0]) and y > min(line2[0][1],line2[1][1]) and y < max(line2[0][1],line2[1][1]):
+    if x >= min(line1[0][0],line1[1][0]) and x <= max(line1[0][0],line1[1][0]) and y >= min(line1[0][1],line1[1][1]) and y <= max(line1[0][1],line1[1][1]):
+        if x >= min(line2[0][0],line2[1][0]) and x <= max(line2[0][0],line2[1][0]) and y >= min(line2[0][1],line2[1][1]) and y <= max(line2[0][1],line2[1][1]):
             return True
 
     return False
@@ -364,6 +372,8 @@ def isCollisionFree(robot, point, obstacles):
         for index,pt1 in enumerate(obstacle):
             nextindex = (index+1)%len(obstacle)
             obstList.append([[pt1[0],pt1[1]],[obstacle[nextindex][0],obstacle[nextindex][1]]])
+    obstList.append([[]])
+
 
     for i,p in enumerate(robot):
         nexti = (i+1) % len(robot)
@@ -385,7 +395,13 @@ def RRT(robot, obstacles, startPoint, goalPoint):
     points = dict()
     tree = dict()
     path = []
-    # Your code goes here.
+
+    for i in range(1,200):
+        point_x = random.uniform(0, 10)
+        point_y = random.uniform(0, 10)
+        points[i] = (point_x, point_y)
+
+    while 
 
     return points, tree, path
 
