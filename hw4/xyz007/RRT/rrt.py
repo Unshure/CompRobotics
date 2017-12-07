@@ -310,15 +310,14 @@ def displayRRTandPath(points, tree, path, robotStart = None, robotGoal = None, p
             point_2 = points[kid]
             lines.append([[point_1[0]/10.00, point_1[1]/10.00], [point_2[0]/10.00, point_2[1]/10.00]])
 
-    for parent in path:
-        for kid in tree[parent]:
+    for i in range(0,len(path)-1):
 
-            point_1 = points[parent]
-            point_2 = points[kid]
+            point_1 = points[path[i]]
+            point_2 = points[path[i+1]]
             path_lines.append([[point_1[0]/10.00, point_1[1]/10.00], [point_2[0]/10.00, point_2[1]/10.00]])
 
     lc = mc.LineCollection(lines)
-    pc = mc.LineCollection(path_lines, colors='green', linewidths=4)
+    pc = mc.LineCollection(path_lines, colors='red', linewidths=2)
 
     print(path)
 
@@ -484,13 +483,14 @@ if __name__ == "__main__":
     print ""
 
     print isCollisionFree(robot,(2,3), obstacles)
-    '''
+
     points, adjListMap = growSimpleRRT(points)
 
     # Search for a solution
     path = basicSearch(adjListMap, 1, 20)
 
-    print("1: {}").format(path)
+    print("Path: {}").format(path)
+    print("NewPoints: {}").format(points)
 
     # Your visualization code
     displayRRTandPath(points, adjListMap, path)
@@ -500,4 +500,3 @@ if __name__ == "__main__":
 
     # Your visualization code
     displayRRTandPath(points, adjListMap, path, robotStart, robotGoal, obstacles)
-'''
