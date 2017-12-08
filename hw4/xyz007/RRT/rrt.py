@@ -354,29 +354,51 @@ Collision checking
 '''
 
 def checkIntersect(line1, line2):
-    xdiff = (line1[0][0] - line1[1][0], line2[0][0] - line2[1][0])
-    ydiff = (line1[0][1] - line1[1][1], line2[0][1] - line2[1][1]) #Typo was here
+    # xdiff = (line1[0][0] - line1[1][0], line2[0][0] - line2[1][0])
+    # ydiff = (line1[0][1] - line1[1][1], line2[0][1] - line2[1][1]) #Typo was here
+    #
+    # def det(a, b):
+    #     return a[0] * b[1] - a[1] * b[0]
+    #
+    # div = det(xdiff, ydiff)
+    # if div == 0:
+    #    return False
+    #
+    # d = (det(*line1), det(*line2))
+    # x = det(d, xdiff) / div
+    # y = det(d, ydiff) / div
+    # if x >= min(line1[0][0],line1[1][0]) and x <= max(line1[0][0],line1[1][0]) and y >= min(line1[0][1],line1[1][1]) and y <= max(line1[0][1],line1[1][1]):
+    #     if x >= min(line2[0][0],line2[1][0]) and x <= max(line2[0][0],line2[1][0]) and y >= min(line2[0][1],line2[1][1]) and y <= max(line2[0][1],line2[1][1]):
+    #         return True
+    #
+    # return False
 
-    def det(a, b):
-        return a[0] * b[1] - a[1] * b[0]
+    #Do the segments intersect?
 
-    div = det(xdiff, ydiff)
-    if div == 0:
-       return False
+    A = np.array([line1[0][0],line1[0][1]])
+    B = np.array([line1[1][0],line1[1][1]])
+    C = np.array([line2[0][0],line2[0][1]])
+    D = np.array([line2[1][0],line2[1][1]])
 
-    d = (det(*line1), det(*line2))
-    x = det(d, xdiff) / div
-    y = det(d, ydiff) / div
-    if x >= min(line1[0][0],line1[1][0]) and x <= max(line1[0][0],line1[1][0]) and y >= min(line1[0][1],line1[1][1]) and y <= max(line1[0][1],line1[1][1]):
-        if x >= min(line2[0][0],line2[1][0]) and x <= max(line2[0][0],line2[1][0]) and y >= min(line2[0][1],line2[1][1]) and y <= max(line2[0][1],line2[1][1]):
+    CA = A-C
+    CD = D-C
+    CB = B-C
+
+    AC = C-A
+    AD = D-A
+    AB = B-A
+
+    if (np.cross(CA,CD).tolist() * np.cross(CB,CD).tolist()) <= 0:
+        if (np.cross(AC,AB).tolist() * np.cross(AD,AB).tolist()) <= 0:
             return True
 
     return False
-
     #Do something here
 
 def does_robot_collide(segment, robot, obstacles):
     p1,p2 = segment['line']
+
+    print(segment)
 
     if not isCollisionFree(robot, p1, obstacles) or not isCollisionFree(robot, p2, obstacles):
         return True
@@ -384,7 +406,7 @@ def does_robot_collide(segment, robot, obstacles):
     checkList = []
     for robot_point in robot:
         robot_offset = [(robot_point[0] - robot[0][0]),(robot_point[1] - robot[0][1])]
-        checkList.append([[p1[0] + robot_offset[0], p1[1] + robot_offset[1]],[p2[0] + robot_offset[0], p2[1] ,robot_offset[1]]])
+        checkList.append([[p1[0] + robot_offset[0], p1[1] + robot_offset[1]],[p2[0] + robot_offset[0], p2[1] + robot_offset[1]]])
 
     obstList = []
     for obstacle in obstacles:
@@ -396,11 +418,15 @@ def does_robot_collide(segment, robot, obstacles):
     obstList.append([[10,10],[10,0]])
     obstList.append([[0,0],[10,0]])
 
+    print("Robot Lines: {}").format(checkList)
+    print("Obstacles: {}").format(obstList)
 
     for robot_line in checkList:
         for edge in obstList:
+
             if checkIntersect(robot_line,edge):
                 return True
+
     return False
 
 
@@ -459,10 +485,16 @@ def RRT(robot, obstacles, startPoint, goalPoint):
     tree = dict()
     path = []
 
-    for i in range(1,300):
+    for i in range(1,1000):
         point_x = random.uniform(0, 10)
         point_y = random.uniform(0, 10)
         points[i] = (point_x, point_y)
+
+    start_index = len(points) + 1
+    goal_index = start_index + 1
+
+    points[start_index] = startPoint
+    points[goal_index] = goalPoint
 
     while point_is_in_obstacle(points[1], obstacles):
         # print("Oh no 1!")
@@ -495,13 +527,11 @@ def RRT(robot, obstacles, startPoint, goalPoint):
 
     # Loop until first two points are collision free
     while does_robot_collide(new_segment, robot, obstacles):
-        print("Oh no 2!")
+        print("Second Point Loop")
         points[2] = (random.uniform(0, 10),random.uniform(0, 10))
         newPoints[2] = points[2]
-
-        new_segment['point1'] = 1
-        new_segment['point2'] = 2
         new_segment['line'] = [points[1],points[2]]
+        # print(new_segment)
 
     # First line of tree appended
     segment_list.append(new_segment)
@@ -562,7 +592,7 @@ def RRT(robot, obstacles, startPoint, goalPoint):
             new_segment['line'] = [newPoints[new_point_index], newPoints[index]]
 
             #If this segment collides, then we want to skip this point entirely -> continue
-            if not does_robot_collide(new_segment, robot, obstacles):
+            if does_robot_collide(new_segment, robot, obstacles):
                 #Remove from new points
                 del newPoints[new_point_index]
                 del adjListMap[new_point_index]
@@ -620,7 +650,7 @@ def RRT(robot, obstacles, startPoint, goalPoint):
             new_segment['point2'] = index
             new_segment['line'] = [newPoints[closest_point_index],newPoints[index]]
 
-            if not does_robot_collide(new_segment, robot, obstacles):
+            if does_robot_collide(new_segment, robot, obstacles):
                 #Remove from new points
                 adjListMap[closest_point_index].remove(index)
                 continue #Go to the next point, and don't do anything with this one
@@ -628,9 +658,7 @@ def RRT(robot, obstacles, startPoint, goalPoint):
             segment_list.append(new_segment)
             #adjListMap[closest_point_index].append(index)
 
-
-
-
+    # path = basicSearch(adjListMap, start_index, goal_index)
 
     return newPoints, adjListMap, path
 
@@ -733,10 +761,16 @@ if __name__ == "__main__":
     points, adjListMap = growSimpleRRT(points)
 
     # Search for a solution
-    path = basicSearch(adjListMap, 1, 20)
+    path = basicSearch(adjListMap, 1, len(points))
 
     print("Path: {}").format(path)
     print("NewPoints: {}").format(points)
+
+    A = [[2.5,2.5],[7.5,7.5]]
+    B = [[2.5,7.5],[7.5,2.5]]
+    test = checkIntersect(A,B)
+
+    print("\n\n Test Intersect {} \n\n").format(test)
 
     # Your visualization code
     displayRRTandPath(points, adjListMap, path)
