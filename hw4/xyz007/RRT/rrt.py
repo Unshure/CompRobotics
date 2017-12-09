@@ -252,7 +252,7 @@ def growSimpleRRT(points):
 '''
 Perform basic search
 '''
-def basicSearch(tree, start, goal):
+def basicSearch(tree, start, goal,points):
     path = []
 
     # Your code goes here. As the result, the function should
@@ -267,6 +267,7 @@ def basicSearch(tree, start, goal):
 
     print(start)
     print(goal)
+    print(points[goal])
 
     queue = []
     closed_list = dict()
@@ -282,6 +283,7 @@ def basicSearch(tree, start, goal):
             closed_list[potential_node] = parent
             # pathLength = current_distance
             if potential_node == goal:
+                print "found goal"
                 # print("Check it: {} == {}").format(potential_node, goal)
                 break;
             neighbors = tree[potential_node]
@@ -294,6 +296,7 @@ def basicSearch(tree, start, goal):
                     # heapq.heappush(queue, (neighbor_distance + current_distance,neighbor_index, potential_node))
 
     index = goal
+    print(closed_list)
     while True:
         path.insert(0, index)
         index = closed_list[index]
@@ -494,7 +497,7 @@ def RRT(robot, obstacles, startPoint, goalPoint):
     start_index = 1
     points[start_index] = startPoint
 
-    for i in range(2,100):
+    for i in range(2,300):
         point_x = random.uniform(0, 10)
         point_y = random.uniform(0, 10)
         points[i] = (point_x, point_y)
@@ -545,7 +548,7 @@ def RRT(robot, obstacles, startPoint, goalPoint):
     segment_list.append(new_segment)
 
 
-    for point_index in range(3,len(points) + 1):
+    for point_index in range(3,len(points)):
         point = points[point_index]
 
         #Add it to the new_points_list
@@ -666,13 +669,119 @@ def RRT(robot, obstacles, startPoint, goalPoint):
             segment_list.append(new_segment)
             #adjListMap[closest_point_index].append(index)
 
+    #Do one more time for goal point###########################################
+    point = points[len(points)]
+
+    #Add it to the new_points_list
+    index = len(newPoints)+1
+    newPoints[index] = point
+
+    adjListMap[index] = []
+
+    closest_distance = float("inf")
+    closest_point_index = -1
+    final_closest_point = [-1,-1]
+    final_is_new = False
+    closest_point_1 = []
+    closest_point_2 = []
+
+    # print("\n\n Here")
+    # print(segment_list)
+
+    for segment in segment_list:
+
+        point_1 = segment['point1']
+        point_2 = segment['point2']
+        line = segment['line']
+        closest_point, is_new_point, distance = find_closest_point(line[0], line[1], point)
+
+        # print("Meow Meow")
+        # print("New: {}, Segment {} -> {}, Closest: {}, IsNew: {}, Distance: {}").format(point, line[0], line[1], closest_point, is_new_point, distance)
+
+        closest_index = [-1,-1]
+
+        if np.array_equal(closest_point,line[0]):
+            closest_index = point_1
+        elif np.array_equal(closest_point,line[1]):
+            closest_index = point_2
+
+
+
+        new_point_index = len(newPoints)+1
+
+
+        new_segment = dict()
+        new_segment['point1'] = new_point_index
+        new_segment['point2'] = index
+        new_segment['line'] = [final_closest_point, newPoints[index]]
+
+        if distance < closest_distance:
+            if does_robot_collide(new_segment, robot, obstacles):
+                closest_distance = distance
+                closest_point_index = closest_index
+                final_closest_point = closest_point
+                final_is_new = is_new_point
+                closest_point_1 = point_1
+                closest_point_2 = point_2
+
+
+    newPoints[new_point_index] = final_closest_point
+    adjListMap[new_point_index] = [index]
+    segment_list.append(new_segment)
+
+    if closest_point_2 in adjListMap[closest_point_1]:
+        adjListMap[closest_point_1].remove(closest_point_2)
+
+        for index, segment in enumerate(segment_list):
+            if segment['point1'] == closest_point_1 and segment['point2'] == closest_point_2:
+                del(segment_list[index])
+
+        adjListMap[closest_point_1].append(new_point_index)
+        adjListMap[new_point_index].append(closest_point_2)
+
+        new_segment = dict()
+        new_segment['point1'] = closest_point_1
+        new_segment['point2'] = new_point_index
+        new_segment['line'] = [newPoints[closest_point_1],newPoints[new_point_index]]
+        segment_list.append(new_segment)
+
+        new_segment = dict()
+        new_segment['point1'] = new_point_index
+        new_segment['point2'] = closest_point_2
+        new_segment['line'] = [newPoints[new_point_index],newPoints[closest_point_2]]
+        segment_list.append(new_segment)
+
+    elif closest_point_1 in adjListMap[closest_point_2]:
+        adjListMap[closest_point_2].remove(closest_point_1)
+        adjListMap[closest_point_2].append(new_point_index)
+        adjListMap[new_point_index].append(closest_point_1)
+
+        for index, segment in enumerate(segment_list):
+            if segment['point1'] == closest_point_2 and segment['point2'] == closest_point_1:
+                del(segment_list[index])
+
+        new_segment = dict()
+        new_segment['point1'] = closest_point_2
+        new_segment['point2'] = new_point_index
+        new_segment['line'] = [newPoints[closest_point_2],newPoints[new_point_index]]
+        segment_list.append(new_segment)
+
+        new_segment = dict()
+        new_segment['point1'] = new_point_index
+        new_segment['point2'] = closest_point_1
+        new_segment['line'] = [newPoints[new_point_index],newPoints[closest_point_1]]
+        segment_list.append(new_segment)
+
+
+
     print("\n\n\n")
     print(adjListMap)
     print(start_index)
     print(goal_index)
-    # print(newPoints)
+    #print(newPoints)
+    goal_index = len(newPoints)
 
-    path = basicSearch(adjListMap, start_index, goal_index)
+    path = basicSearch(adjListMap, start_index, goal_index,newPoints)
 
     for entry in path:
         print("{} -> ").format(newPoints[entry])
@@ -780,7 +889,7 @@ if __name__ == "__main__":
     points, adjListMap = growSimpleRRT(points)
 
     # Search for a solution
-    path = basicSearch(adjListMap, 1, len(points))
+    path = basicSearch(adjListMap, 1, len(points), points)
 
     print("Path: {}").format(path)
     print("NewPoints: {}").format(points)
