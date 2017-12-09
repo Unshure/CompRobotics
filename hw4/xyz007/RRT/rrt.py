@@ -252,7 +252,7 @@ def growSimpleRRT(points):
 '''
 Perform basic search
 '''
-def basicSearch(tree, start, goal,points):
+def basicSearch(tree, start, goal):
     path = []
 
     # Your code goes here. As the result, the function should
@@ -267,7 +267,7 @@ def basicSearch(tree, start, goal,points):
 
     print(start)
     print(goal)
-    print(points[goal])
+    #print(points[goal])
 
     queue = []
     closed_list = dict()
@@ -670,8 +670,8 @@ def RRT(robot, obstacles, startPoint, goalPoint):
             #adjListMap[closest_point_index].append(index)
 
     #Do one more time for goal point###########################################
-    point = points[len(points)]
 
+    point = points[len(points)]
     #Add it to the new_points_list
     index = len(newPoints)+1
     newPoints[index] = point
@@ -713,10 +713,11 @@ def RRT(robot, obstacles, startPoint, goalPoint):
         new_segment = dict()
         new_segment['point1'] = new_point_index
         new_segment['point2'] = index
-        new_segment['line'] = [final_closest_point, newPoints[index]]
+        new_segment['line'] = [closest_point, newPoints[index]]
 
         if distance < closest_distance:
-            if does_robot_collide(new_segment, robot, obstacles):
+            if not does_robot_collide(new_segment, robot, obstacles):
+                print("Happiness")
                 closest_distance = distance
                 closest_point_index = closest_index
                 final_closest_point = closest_point
@@ -781,7 +782,7 @@ def RRT(robot, obstacles, startPoint, goalPoint):
     #print(newPoints)
     goal_index = len(newPoints)
 
-    path = basicSearch(adjListMap, start_index, goal_index,newPoints)
+    path = basicSearch(adjListMap, start_index, goal_index)
 
     for entry in path:
         print("{} -> ").format(newPoints[entry])
@@ -889,7 +890,7 @@ if __name__ == "__main__":
     points, adjListMap = growSimpleRRT(points)
 
     # Search for a solution
-    path = basicSearch(adjListMap, 1, len(points), points)
+    path = basicSearch(adjListMap, 1, len(points))
 
     print("Path: {}").format(path)
     print("NewPoints: {}").format(points)
