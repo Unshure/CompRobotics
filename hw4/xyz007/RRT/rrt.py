@@ -263,6 +263,11 @@ def basicSearch(tree, start, goal):
     # in which 23 would be the label for the start and 37 the
     # label for the goal.
 
+    print(" \n\n\n Look at me \n\n")
+
+    print(start)
+    print(goal)
+
     queue = []
     closed_list = dict()
 
@@ -277,8 +282,9 @@ def basicSearch(tree, start, goal):
             closed_list[potential_node] = parent
             # pathLength = current_distance
             if potential_node == goal:
+                # print("Check it: {} == {}").format(potential_node, goal)
                 break;
-            neighbors = adjListMap[potential_node]
+            neighbors = tree[potential_node]
             for neighbor in neighbors:
                 # neighbor_index = neighbor[0]
                 # neighbor_distance = neighbor[1]
@@ -294,7 +300,7 @@ def basicSearch(tree, start, goal):
         if index == None:
             break
 
-    print("This: {}").format(path)
+    # print("This: {}").format(path)
 
     return path
 
@@ -308,7 +314,7 @@ def displayRRTandPath(points, tree, path, robotStart = None, robotGoal = None, p
     # drawProblem and modify it to do what you need.
     # You should draw the problem when applicable.
 
-    print("Tree: {}").format(tree)
+    # print("Tree: {}").format(tree)
 
     lines = []
     path_lines = []
@@ -398,7 +404,7 @@ def checkIntersect(line1, line2):
 def does_robot_collide(segment, robot, obstacles):
     p1,p2 = segment['line']
 
-    print(segment)
+    # print(segment)
 
     if not isCollisionFree(robot, p1, obstacles) or not isCollisionFree(robot, p2, obstacles):
         return True
@@ -418,8 +424,8 @@ def does_robot_collide(segment, robot, obstacles):
     obstList.append([[10,10],[10,0]])
     obstList.append([[0,0],[10,0]])
 
-    print("Robot Lines: {}").format(checkList)
-    print("Obstacles: {}").format(obstList)
+    # print("Robot Lines: {}").format(checkList)
+    # print("Obstacles: {}").format(obstList)
 
     for robot_line in checkList:
         for edge in obstList:
@@ -482,19 +488,21 @@ The full RRT algorithm
 def RRT(robot, obstacles, startPoint, goalPoint):
 
     points = dict()
-    tree = dict()
+    # tree = dict()
     path = []
 
-    for i in range(1,1000):
+    start_index = 1
+    points[start_index] = startPoint
+
+    for i in range(2,100):
         point_x = random.uniform(0, 10)
         point_y = random.uniform(0, 10)
         points[i] = (point_x, point_y)
 
-    start_index = len(points) + 1
-    goal_index = start_index + 1
-
-    points[start_index] = startPoint
+    goal_index = len(points) + 1
     points[goal_index] = goalPoint
+
+    print(points[goal_index])
 
     while point_is_in_obstacle(points[1], obstacles):
         # print("Oh no 1!")
@@ -527,7 +535,7 @@ def RRT(robot, obstacles, startPoint, goalPoint):
 
     # Loop until first two points are collision free
     while does_robot_collide(new_segment, robot, obstacles):
-        print("Second Point Loop")
+        # print("Second Point Loop")
         points[2] = (random.uniform(0, 10),random.uniform(0, 10))
         newPoints[2] = points[2]
         new_segment['line'] = [points[1],points[2]]
@@ -658,7 +666,18 @@ def RRT(robot, obstacles, startPoint, goalPoint):
             segment_list.append(new_segment)
             #adjListMap[closest_point_index].append(index)
 
-    # path = basicSearch(adjListMap, start_index, goal_index)
+    print("\n\n\n")
+    print(adjListMap)
+    print(start_index)
+    print(goal_index)
+    # print(newPoints)
+
+    path = basicSearch(adjListMap, start_index, goal_index)
+
+    for entry in path:
+        print("{} -> ").format(newPoints[entry])
+
+    print("Path: {}").format(path)
 
     return newPoints, adjListMap, path
 
@@ -756,7 +775,7 @@ if __name__ == "__main__":
     print str(points)
     print ""
 
-    print isCollisionFree(robot,(2,3), obstacles)
+    # print isCollisionFree(robot,(2,3), obstacles)
 
     points, adjListMap = growSimpleRRT(points)
 
@@ -766,17 +785,13 @@ if __name__ == "__main__":
     print("Path: {}").format(path)
     print("NewPoints: {}").format(points)
 
-    A = [[2.5,2.5],[7.5,7.5]]
-    B = [[2.5,7.5],[7.5,2.5]]
-    test = checkIntersect(A,B)
-
-    print("\n\n Test Intersect {} \n\n").format(test)
+    # print("\n\n Test Intersect {} \n\n").format(test)
 
     # Your visualization code
     displayRRTandPath(points, adjListMap, path)
 
     # Solve a real RRT problem
-    new_points, adjListMap, path = RRT(robot, obstacles, (x1, y1), (x2, y2))
+    new_points, super_tree, the_path = RRT(robot, obstacles, (x1, y1), (x2, y2))
 
     # Your visualization code
-    displayRRTandPath(new_points, adjListMap, path, robotStart, robotGoal, obstacles)
+    displayRRTandPath(new_points, super_tree, the_path, robotStart, robotGoal, obstacles)
