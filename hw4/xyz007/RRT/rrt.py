@@ -341,20 +341,20 @@ def displayRRTandPath(points, tree, path, robotStart = None, robotGoal = None, p
             point_2 = points[path[i+1]]
             path_lines.append([[point_1[0]/10.00, point_1[1]/10.00], [point_2[0]/10.00, point_2[1]/10.00]])
 
-    lc = mc.LineCollection(lines)
-    pc = mc.LineCollection(path_lines, colors='red', linewidths=2)
+    lc = mc.LineCollection(lines, colors='#546E7A', linewidths=.5)
+    pc = mc.LineCollection(path_lines, colors='#43A047', linewidths=1)
 
     # print(path)
 
     fig, ax = setupPlot()
 
     if polygons != None:
-        patch = createPolygonPatch(robotStart, 'green')
+        patch = createPolygonPatch(robotStart, '#66BB6A')
         ax.add_patch(patch)
-        patch = createPolygonPatch(robotGoal, 'red')
+        patch = createPolygonPatch(robotGoal, '#c62828')
         ax.add_patch(patch)
         for p in range(0, len(polygons)):
-            patch = createPolygonPatch(polygons[p], 'gray')
+            patch = createPolygonPatch(polygons[p], '#FF8F00')
             ax.add_patch(patch)
 
     ax.add_collection(lc)
@@ -519,7 +519,7 @@ def isCollisionFree(robot, point, obstacles):
     obstList = []
 
     for point in robot:
-        if point_is_in_obstacle(point,obstacles)
+        if point_is_in_obstacle(point,obstacles):
             return False
 
 
@@ -577,7 +577,7 @@ def RRT(robot, obstacles, startPoint, goalPoint):
     start_index = 1
     points[start_index] = startPoint
 
-    for i in range(2,1000):
+    for i in range(2,300):
         point_x = random.uniform(0, 10)
         point_y = random.uniform(0, 10)
         points[i] = (point_x, point_y)
