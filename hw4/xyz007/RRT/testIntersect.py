@@ -35,8 +35,39 @@ def line_intersection(line1, line2):
     AD = D-A
     AB = B-A
 
-    if (np.cross(CA,CD).tolist() * np.cross(CB,CD).tolist()) <= 0:
-        if (np.cross(AC,AB).tolist() * np.cross(AD,AB).tolist()) <= 0:
+
+    cross1 = np.cross(CA,CD).tolist()
+    cross2 = np.cross(CB,CD).tolist()
+    cross3 = np.cross(AC,AB).tolist()
+    cross4 = np.cross(AD,AB).tolist()
+
+    print("Cross: ", cross1, cross2, cross3, cross4)
+
+    #parallel
+    if cross1 == 0 and cross2 == 0 and cross3 == 0 and cross4 == 0:
+        print("parallel")
+        #Vertical Line
+        if A[0] - B[0] == 0:
+            if min(C[1],D[1]) >= min(A[1],B[1]) and min(C[1],D[1]) <= max(A[1],B[1]):
+                return True
+        if min(C[0],D[0]) >= min(A[0],B[0]) and min(C[0],D[0]) <= max(A[0],B[0]):
+            return True
+
+    #One point touches
+    if cross1 == 0 or cross2 == 0 or cross3 == 0 or cross4 == 0:
+        print("One touch")
+        if A[0] - B[0] == 0:
+            if min(A[1],B[1]) >= min(C[1],D[1]) and min(A[1],B[1]) <= max(C[1],D[1]):
+                return True
+        if C[0] - D[0] == 0:
+            if min(C[1],D[1]) >= min(A[1],B[1]) and min(C[1],D[1]) <= max(A[1],B[1]):
+                return True
+        if min(C[0],D[0]) >= min(A[0],B[0]) and min(C[0],D[0]) <= max(A[0],B[0]) or max(C[0],D[0]) >= min(A[0],B[0]) and max(C[0],D[0]) <= max(A[0],B[0]):
+            return True            
+
+
+    if (np.cross(CA,CD).tolist() * np.cross(CB,CD).tolist()) < 0:
+        if (np.cross(AC,AB).tolist() * np.cross(AD,AB).tolist()) < 0:
             return True
 
     return False
