@@ -68,10 +68,12 @@ def isCollisionFree(robot, point, obstacles):
     for i,p in enumerate(robot):
         nexti = (i+1) % len(robot)
         roboedge = [[point[0] + p[0],point[1] + p[1]],[point[0] +robot[nexti][0],point[1] + robot[nexti][1]]]
+        print("this is roboedge " ,roboedge)
         for edge in obstList:
             # print(roboedge)
             # print(edge)
             if checkIntersect(roboedge,edge):
+                print("Collides with: ", edge)
                 # print(roboedge)
                 # print(edge)
                 return False

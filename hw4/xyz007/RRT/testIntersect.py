@@ -1,25 +1,46 @@
 import matplotlib.pyplot as plt
 import sys
+import numpy as np
 
 def line_intersection(line1, line2):
-    xdiff = (line1[0][0] - line1[1][0], line2[0][0] - line2[1][0])
-    ydiff = (line1[0][1] - line1[1][1], line2[0][1] - line2[1][1]) #Typo was here
+    # xdiff = (line1[0][0] - line1[1][0], line2[0][0] - line2[1][0])
+    # ydiff = (line1[0][1] - line1[1][1], line2[0][1] - line2[1][1]) #Typo was here
 
-    def det(a, b):
-        return a[0] * b[1] - a[1] * b[0]
+    # def det(a, b):
+    #     return a[0] * b[1] - a[1] * b[0]
 
-    div = det(xdiff, ydiff)
-    if div == 0:
-       return False
+    # div = det(xdiff, ydiff)
+    # if div == 0:
+    #    return False
 
-    d = (det(*line1), det(*line2))
-    x = det(d, xdiff) / div
-    y = det(d, ydiff) / div
-    if x >= min(line1[0][0],line1[1][0]) and x <= max(line1[0][0],line1[1][0]) and y >= min(line1[0][1],line1[1][1]) and y <= max(line1[0][1],line1[1][1]):
-        if x >= min(line2[0][0],line2[1][0]) and x <= max(line2[0][0],line2[1][0]) and y >= min(line2[0][1],line2[1][1]) and y <= max(line2[0][1],line2[1][1]):
+    # d = (det(*line1), det(*line2))
+    # x = det(d, xdiff) / div
+    # y = det(d, ydiff) / div
+    # if x >= min(line1[0][0],line1[1][0]) and x <= max(line1[0][0],line1[1][0]) and y >= min(line1[0][1],line1[1][1]) and y <= max(line1[0][1],line1[1][1]):
+    #     if x >= min(line2[0][0],line2[1][0]) and x <= max(line2[0][0],line2[1][0]) and y >= min(line2[0][1],line2[1][1]) and y <= max(line2[0][1],line2[1][1]):
+    #         return True
+
+    # return False
+
+    A = np.array([line1[0][0],line1[0][1]])
+    B = np.array([line1[1][0],line1[1][1]])
+    C = np.array([line2[0][0],line2[0][1]])
+    D = np.array([line2[1][0],line2[1][1]])
+
+    CA = A-C
+    CD = D-C
+    CB = B-C
+
+    AC = C-A
+    AD = D-A
+    AB = B-A
+
+    if (np.cross(CA,CD).tolist() * np.cross(CB,CD).tolist()) <= 0:
+        if (np.cross(AC,AB).tolist() * np.cross(AD,AB).tolist()) <= 0:
             return True
 
     return False
+
 
 x1,y1,x2,y2,x3,y3,x4,y4 = float(sys.argv[1]),float(sys.argv[2]),float(sys.argv[3]),float(sys.argv[4]),float(sys.argv[5]),float(sys.argv[6]),float(sys.argv[7]),float(sys.argv[8])
 

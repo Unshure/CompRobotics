@@ -417,6 +417,7 @@ def does_robot_collide(segment, robot, obstacles):
     # print(segment)
 
     if not isCollisionFree(robot, p1, obstacles) or not isCollisionFree(robot, p2, obstacles):
+        print(segment)
         return True
 
     checkList = []
