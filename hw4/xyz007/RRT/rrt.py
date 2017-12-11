@@ -751,12 +751,18 @@ def RRT(robot, obstacles, startPoint, goalPoint):
             segment_list = new_segment_list
             break
 
-    # print("\n\n\n")
-    # print(adjListMap)
-    # print(start_index)
-    # print(goal_index)
-    # print(newPoints)
-    goal_index = len(newPoints)
+    goal_index = -1
+    for i in range(1,len(newPoints)):
+        x = len(newPoints)+1 - i
+        if newPoints[x][0] == goalPoint[0] and newPoints[x][1] == goalPoint[1]:
+            goal_index = x
+            break
+
+    print("\n\n\n")
+    print(adjListMap)
+    print(start_index)
+    print(goal_index)
+    print(newPoints)
 
     path = basicSearch(adjListMap, start_index, goal_index)
 
