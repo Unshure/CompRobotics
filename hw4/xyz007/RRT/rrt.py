@@ -1,3 +1,10 @@
+################
+'''
+Fix path graphic
+robot inside obstacle
+'''
+###############
+
 import sys
 
 import matplotlib.pyplot as plt
