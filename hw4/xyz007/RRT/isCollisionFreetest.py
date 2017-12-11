@@ -76,11 +76,37 @@ def checkIntersect(line1, line2):
             return True
 
     return False
+def point_is_in_obstacle(point, obstacles):
+
+    P0 = point
+    P1 = [10,point[1]]
+    ray = [[P0[0],P0[1]],[P1[0],P1[1]]]
+
+    counter = 0
+
+    for obstacle in obstacles:
+        for index,pt1 in enumerate(obstacle):
+            nextindex = (index+1)%len(obstacle)
+            segment = [[pt1[0],pt1[1]],[obstacle[nextindex][0],obstacle[nextindex][1]]]
+            if checkIntersect(segment, ray):
+                counter = counter + 1
+
+    if (counter % 2) != 0:
+        return True
+    else:
+        return False
+
+
 
 
 def isCollisionFree(robot, point, obstacles):
     # print(point)
     obstList = []
+
+    for rpoint in robot:
+        if point_is_in_obstacle((point[0] + rpoint[0], point[1] + rpoint[1]),obstacles):
+            return False
+
 
     for obstacle in obstacles:
         for index,pt1 in enumerate(obstacle):
@@ -95,12 +121,10 @@ def isCollisionFree(robot, point, obstacles):
     for i,p in enumerate(robot):
         nexti = (i+1) % len(robot)
         roboedge = [[point[0] + p[0],point[1] + p[1]],[point[0] +robot[nexti][0],point[1] + robot[nexti][1]]]
-        print("this is roboedge " ,roboedge)
         for edge in obstList:
             # print(roboedge)
             # print(edge)
             if checkIntersect(roboedge,edge):
-                print("Collides with: ", edge)
                 # print(roboedge)
                 # print(edge)
                 return False
@@ -139,4 +163,4 @@ if __name__ == "__main__":
         print str(obstacles[p])
     print ""
 
-    print(isCollisionFree(robot, (1,1),obstacles))
+    print(isCollisionFree(robot, (2.4,6),obstacles))
