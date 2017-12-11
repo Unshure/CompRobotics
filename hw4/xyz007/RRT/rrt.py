@@ -54,6 +54,7 @@ def createPolygonPatch(polygon, color):
 '''
 Render the problem
 '''
+
 def drawProblem(robotStart, robotGoal, polygons):
     fig, ax = setupPlot()
     patch = createPolygonPatch(robotStart, 'green')
@@ -64,6 +65,7 @@ def drawProblem(robotStart, robotGoal, polygons):
         patch = createPolygonPatch(polygons[p], 'gray')
         ax.add_patch(patch)
     plt.show()
+
 
 def find_closest_point(P0, P1, P2):
 
@@ -116,6 +118,7 @@ def find_closest_point(P0, P1, P2):
 '''
 Grow a simple RRT
 '''
+
 def growSimpleRRT(points):
 
     newPoints = dict()
@@ -257,6 +260,7 @@ def growSimpleRRT(points):
 '''
 Perform basic search
 '''
+
 def basicSearch(tree, start, goal):
     path = []
 
@@ -315,6 +319,7 @@ def basicSearch(tree, start, goal):
 '''
 Display the RRT and Path
 '''
+
 def displayRRTandPath(points, tree, path, robotStart = None, robotGoal = None, polygons = None):
 
     # Your code goes here
@@ -366,6 +371,7 @@ def displayRRTandPath(points, tree, path, robotStart = None, robotGoal = None, p
 '''
 Collision checking
 '''
+
 def checkIntersect(line1, line2):
     # xdiff = (line1[0][0] - line1[1][0], line2[0][0] - line2[1][0])
     # ydiff = (line1[0][1] - line1[1][1], line2[0][1] - line2[1][1]) #Typo was here
@@ -476,6 +482,7 @@ def checkIntersect(line1, line2):
 
     #Do something here
 
+
 def does_robot_collide(segment, robot, obstacles):
     p1,p2 = segment['line']
 
@@ -511,6 +518,7 @@ def does_robot_collide(segment, robot, obstacles):
 
     return False
 
+
 def isCollisionFree(robot, point, obstacles):
     # print(point)
     obstList = []
@@ -541,6 +549,7 @@ def isCollisionFree(robot, point, obstacles):
                 # print(edge)
                 return False
     return True
+
 
 def point_is_in_obstacle(point, obstacles):
 
@@ -757,6 +766,7 @@ def RRT(robot, obstacles, startPoint, goalPoint):
     # print("Path: {}").format(path)
 
     return newPoints, adjListMap, path
+
 
 def try_to_connect_goal(goalPoint, newPoints, adjListMap, segment_list):
 
