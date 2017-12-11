@@ -340,8 +340,8 @@ def displayRRTandPath(points, tree, path, robotStart = None, robotGoal = None, p
             point_2 = points[path[i+1]]
             path_lines.append([[point_1[0]/10.00, point_1[1]/10.00], [point_2[0]/10.00, point_2[1]/10.00]])
 
-    lc = mc.LineCollection(lines, colors='#546E7A', linewidths=.5)
-    pc = mc.LineCollection(path_lines, colors='#43A047', linewidths=1)
+    lc = mc.LineCollection(lines, colors='#212121', linewidths=.5)
+    pc = mc.LineCollection(path_lines, colors='#E64A19', linewidths=1)
 
     # print(path)
 
@@ -353,7 +353,7 @@ def displayRRTandPath(points, tree, path, robotStart = None, robotGoal = None, p
         patch = createPolygonPatch(robotGoal, '#c62828')
         ax.add_patch(patch)
         for p in range(0, len(polygons)):
-            patch = createPolygonPatch(polygons[p], '#FF8F00')
+            patch = createPolygonPatch(polygons[p], 'grey')
             ax.add_patch(patch)
 
     ax.add_collection(lc)
@@ -567,42 +567,28 @@ The full RRT algorithm
 '''
 def RRT(robot, obstacles, startPoint, goalPoint):
 
-    points = dict()
-    # tree = dict()
+    newPoints = dict()
+    adjListMap = dict()
+
+    segment_list = []
     path = []
 
     start_index = 1
-    points[start_index] = startPoint
+    newPoints[start_index] = startPoint
 
-    for i in range(2,300):
-        point_x = random.uniform(0, 10)
-        point_y = random.uniform(0, 10)
-        points[i] = (point_x, point_y)
+    #Can I connect the start to goal?
+    new_segment = dict()
+    new_segment['point1'] = 1
+    new_segment['point2'] = 2
+    new_segment['line'] = [startPoint, goalPoint]
 
-    goal_index = len(points) + 1
-    points[goal_index] = goalPoint
+    if not does_robot_collide(new_segment, robot, obstacles):
+        newPoints[2] = goalPoint
+        adjListMap[1] = [2]
+        return newPoints, adjListMap, [1,2]
 
-    # print(points[goal_index])
-
-    while point_is_in_obstacle(points[1], obstacles):
-        # print("Oh no 1!")
-        points[1] = (random.uniform(0, 10),random.uniform(0, 10))
-
-
-    newPoints = dict()
-    adjListMap = dict()
-    segment_list = []
-
-    if len(points) < 2:
-        if len(points) == 1:
-            adjListMap[1] = list()
-            return points, adjListMap
-        else:
-            return points, adjListMap
-
-    #Connect first two points by default
-    newPoints[1] = points[1]
-    newPoints[2] = points[2]
+    #Generate second point
+    newPoints[2] = (random.uniform(0, 10), random.uniform(0, 10))
 
     adjListMap[1] = [2]
     adjListMap[2] = []
@@ -610,39 +596,41 @@ def RRT(robot, obstacles, startPoint, goalPoint):
     new_segment = dict()
     new_segment['point1'] = 1
     new_segment['point2'] = 2
-    new_segment['line'] = [points[1],points[2]]
+    new_segment['line'] = [newPoints[1], newPoints[2]]
 
-
-    # Loop until first two points are collision free
+    #Makes a point to connect the goal to
     while does_robot_collide(new_segment, robot, obstacles):
-        # print("Second Point Loop")
-        points[2] = (random.uniform(0, 10),random.uniform(0, 10))
-        newPoints[2] = points[2]
-        new_segment['line'] = [points[1],points[2]]
-        # print(new_segment)
+        newPoints[2] = (random.uniform(0, 10),random.uniform(0, 10))
+        new_segment['line'] = [newPoints[1],newPoints[2]]
 
     # First line of tree appended
     segment_list.append(new_segment)
 
+    #Now we have two points
+    #Start can't connect to goal
+    while True:
 
-    for point_index in range(3,len(points)):
-        point = points[point_index]
+        #Generate a new point
+        point_x = random.uniform(0, 10)
+        point_y = random.uniform(0, 10)
 
-        #Add it to the new_points_list
+        #If it's in an obstacle, skip this point
+        if point_is_in_obstacle((point_x,point_y), obstacles):
+            continue
+
         index = len(newPoints)+1
+        point = (point_x, point_y)
         newPoints[index] = point
-
         adjListMap[index] = []
+
+        print("Generated {} points").format(len(newPoints))
 
         closest_distance = float("inf")
         closest_point_index = -1
         final_closest_point = [-1,-1]
         final_is_new = False
-        closest_point_1 = []
-        closest_point_2 = []
-
-        # print("\n\n Here")
-        # print(segment_list)
+        closest_point_1 = None
+        closest_point_2 = None
 
         for segment in segment_list:
 
@@ -650,9 +638,6 @@ def RRT(robot, obstacles, startPoint, goalPoint):
             point_2 = segment['point2']
             line = segment['line']
             closest_point, is_new_point, distance = find_closest_point(line[0], line[1], point)
-
-            print("Meow Meow")
-            print(point_index)
 
             closest_index = [-1,-1]
 
@@ -687,6 +672,9 @@ def RRT(robot, obstacles, startPoint, goalPoint):
                 continue #Go to the next point, and don't do anything with this one
 
             segment_list.append(new_segment)
+
+            if closest_point_1 == None:
+                continue
 
             if closest_point_2 in adjListMap[closest_point_1]:
                 adjListMap[closest_point_1].remove(closest_point_2)
@@ -746,119 +734,20 @@ def RRT(robot, obstacles, startPoint, goalPoint):
             segment_list.append(new_segment)
             #adjListMap[closest_point_index].append(index)
 
-    #Do one more time for goal point###########################################
+        connects, new_newPoints, new_adjListMap, new_segment_list = try_to_connect_goal(goalPoint, newPoints, adjListMap, segment_list)
 
-    print("\n\n\n\n\n\n THE GAME HAS STARTED \n\n\n\n\n\n\n")
-    point = points[len(points)]
-    #Add it to the new_points_list
-    index = len(newPoints)+1
-    newPoints[index] = point
-
-    adjListMap[index] = []
-
-    closest_distance = float("inf")
-    closest_point_index = -1
-    final_closest_point = [-1,-1]
-    final_is_new = False
-    closest_point_1 = []
-    closest_point_2 = []
-
-    # print("\n\n Here")
-    # print(segment_list)
-
-    for Index,segment in enumerate(segment_list):
-
-        point_1 = segment['point1']
-        point_2 = segment['point2']
-        line = segment['line']
-        closest_point, is_new_point, distance = find_closest_point(line[0], line[1], point)
-
-        print("Meow Meow Meow")
-        print(Index)
-
-        closest_index = [-1,-1]
-
-        if np.array_equal(closest_point,line[0]):
-            closest_index = point_1
-        elif np.array_equal(closest_point,line[1]):
-            closest_index = point_2
-
-
-
-        new_point_index = len(newPoints)+1
-
-
-        new_segment = dict()
-        new_segment['point1'] = new_point_index
-        new_segment['point2'] = index
-        new_segment['line'] = [closest_point, newPoints[index]]
-
-        if distance < closest_distance:
-            if not does_robot_collide(new_segment, robot, obstacles):
-                # print("Happiness")
-                closest_distance = distance
-                closest_point_index = closest_index
-                final_closest_point = closest_point
-                final_is_new = is_new_point
-                closest_point_1 = point_1
-                closest_point_2 = point_2
-
-
-    newPoints[new_point_index] = final_closest_point
-    adjListMap[new_point_index] = [index]
-    segment_list.append(new_segment)
-
-    if closest_point_2 in adjListMap[closest_point_1]:
-        adjListMap[closest_point_1].remove(closest_point_2)
-
-        for index, segment in enumerate(segment_list):
-            if segment['point1'] == closest_point_1 and segment['point2'] == closest_point_2:
-                del(segment_list[index])
-
-        adjListMap[closest_point_1].append(new_point_index)
-        adjListMap[new_point_index].append(closest_point_2)
-
-        new_segment = dict()
-        new_segment['point1'] = closest_point_1
-        new_segment['point2'] = new_point_index
-        new_segment['line'] = [newPoints[closest_point_1],newPoints[new_point_index]]
-        segment_list.append(new_segment)
-
-        new_segment = dict()
-        new_segment['point1'] = new_point_index
-        new_segment['point2'] = closest_point_2
-        new_segment['line'] = [newPoints[new_point_index],newPoints[closest_point_2]]
-        segment_list.append(new_segment)
-
-    elif closest_point_1 in adjListMap[closest_point_2]:
-        adjListMap[closest_point_2].remove(closest_point_1)
-        adjListMap[closest_point_2].append(new_point_index)
-        adjListMap[new_point_index].append(closest_point_1)
-
-        for index, segment in enumerate(segment_list):
-            if segment['point1'] == closest_point_2 and segment['point2'] == closest_point_1:
-                del(segment_list[index])
-
-        new_segment = dict()
-        new_segment['point1'] = closest_point_2
-        new_segment['point2'] = new_point_index
-        new_segment['line'] = [newPoints[closest_point_2],newPoints[new_point_index]]
-        segment_list.append(new_segment)
-
-        new_segment = dict()
-        new_segment['point1'] = new_point_index
-        new_segment['point2'] = closest_point_1
-        new_segment['line'] = [newPoints[new_point_index],newPoints[closest_point_1]]
-        segment_list.append(new_segment)
-
-
+        if connects:
+            newPoints = new_newPoints
+            adjListMap = new_adjListMap
+            segment_list = new_segment_list
+            break
 
     # print("\n\n\n")
     # print(adjListMap)
     # print(start_index)
     # print(goal_index)
     # print(newPoints)
-    goal_index = len(newPoints) - 1
+    goal_index = len(newPoints)
 
     path = basicSearch(adjListMap, start_index, goal_index)
 
@@ -868,6 +757,122 @@ def RRT(robot, obstacles, startPoint, goalPoint):
     # print("Path: {}").format(path)
 
     return newPoints, adjListMap, path
+
+def try_to_connect_goal(goalPoint, newPoints, adjListMap, segment_list):
+
+    closest_distance = float("inf")
+    closest_point_index = -1
+    final_closest_point = [-1,-1]
+    final_is_new = False
+    closest_point_1 = None
+    closest_point_2 = None
+
+    index = len(newPoints) + 1
+    adjListMap[index] = []
+    newPoints[index] = goalPoint
+
+    for segment in segment_list:
+
+        point_1 = segment['point1']
+        point_2 = segment['point2']
+        line = segment['line']
+        closest_point, is_new_point, distance = find_closest_point(line[0], line[1], goalPoint)
+
+        closest_index = [-1,-1]
+
+        if np.array_equal(closest_point,line[0]):
+            closest_index = point_1
+        elif np.array_equal(closest_point,line[1]):
+            closest_index = point_2
+
+        if distance < closest_distance:
+            closest_distance = distance
+            closest_point_index = closest_index
+            final_closest_point = closest_point
+            final_is_new = is_new_point
+            closest_point_1 = point_1
+            closest_point_2 = point_2
+
+    if final_is_new:
+        new_point_index = len(newPoints)+1
+        newPoints[new_point_index] = final_closest_point
+        adjListMap[new_point_index] = [index]
+
+        new_segment = dict()
+        new_segment['point1'] = new_point_index
+        new_segment['point2'] = index
+        new_segment['line'] = [newPoints[new_point_index], newPoints[index]]
+
+        #If this segment collides, then we want to skip this point entirely -> continue
+        if does_robot_collide(new_segment, robot, obstacles):
+            #Remove from new points
+            del newPoints[new_point_index]
+            del adjListMap[new_point_index]
+            return False, None, None, None #Go to the next point, and don't do anything with this one
+
+        segment_list.append(new_segment)
+
+        if closest_point_1 == None:
+            return False, None, None, None
+
+        if closest_point_2 in adjListMap[closest_point_1]:
+            adjListMap[closest_point_1].remove(closest_point_2)
+
+            for index, segment in enumerate(segment_list):
+                if segment['point1'] == closest_point_1 and segment['point2'] == closest_point_2:
+                    del(segment_list[index])
+
+            adjListMap[closest_point_1].append(new_point_index)
+            adjListMap[new_point_index].append(closest_point_2)
+
+            new_segment = dict()
+            new_segment['point1'] = closest_point_1
+            new_segment['point2'] = new_point_index
+            new_segment['line'] = [newPoints[closest_point_1],newPoints[new_point_index]]
+            segment_list.append(new_segment)
+
+            new_segment = dict()
+            new_segment['point1'] = new_point_index
+            new_segment['point2'] = closest_point_2
+            new_segment['line'] = [newPoints[new_point_index],newPoints[closest_point_2]]
+            segment_list.append(new_segment)
+
+        elif closest_point_1 in adjListMap[closest_point_2]:
+            adjListMap[closest_point_2].remove(closest_point_1)
+            adjListMap[closest_point_2].append(new_point_index)
+            adjListMap[new_point_index].append(closest_point_1)
+
+            for index, segment in enumerate(segment_list):
+                if segment['point1'] == closest_point_2 and segment['point2'] == closest_point_1:
+                    del(segment_list[index])
+
+            new_segment = dict()
+            new_segment['point1'] = closest_point_2
+            new_segment['point2'] = new_point_index
+            new_segment['line'] = [newPoints[closest_point_2],newPoints[new_point_index]]
+            segment_list.append(new_segment)
+
+            new_segment = dict()
+            new_segment['point1'] = new_point_index
+            new_segment['point2'] = closest_point_1
+            new_segment['line'] = [newPoints[new_point_index],newPoints[closest_point_1]]
+            segment_list.append(new_segment)
+
+    else: #Not new point
+        adjListMap[closest_point_index].append(index)
+        new_segment = dict()
+        new_segment['point1'] = closest_point_index
+        new_segment['point2'] = index
+        new_segment['line'] = [newPoints[closest_point_index],newPoints[index]]
+
+        if does_robot_collide(new_segment, robot, obstacles):
+            #Remove from new points
+            adjListMap[closest_point_index].remove(index)
+            return False, None, None, None #Go to the next point, and don't do anything with this one
+
+        segment_list.append(new_segment)
+
+    return True, newPoints, adjListMap, segment_list
 
 if __name__ == "__main__":
 
