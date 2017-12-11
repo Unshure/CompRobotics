@@ -270,10 +270,10 @@ def basicSearch(tree, start, goal):
     # in which 23 would be the label for the start and 37 the
     # label for the goal.
 
-    print(" \n\n\n Look at me \n\n")
+    # print(" \n\n\n Look at me \n\n")
 
-    print(start)
-    print(goal)
+    # print(start)
+    # print(goal)
     #print(points[goal])
 
     queue = []
@@ -290,7 +290,7 @@ def basicSearch(tree, start, goal):
             closed_list[potential_node] = parent
             # pathLength = current_distance
             if potential_node == goal:
-                print "found goal"
+                # print "found goal"
                 # print("Check it: {} == {}").format(potential_node, goal)
                 break;
             neighbors = tree[potential_node]
@@ -303,7 +303,7 @@ def basicSearch(tree, start, goal):
                     # heapq.heappush(queue, (neighbor_distance + current_distance,neighbor_index, potential_node))
 
     index = goal
-    print(closed_list)
+    # print(closed_list)
     while True:
         path.insert(0, index)
         index = closed_list[index]
@@ -324,7 +324,7 @@ def displayRRTandPath(points, tree, path, robotStart = None, robotGoal = None, p
     # drawProblem and modify it to do what you need.
     # You should draw the problem when applicable.
 
-    # print("Tree: {}").format(tree)
+    print("Path: {}").format(path)
 
     lines = []
     path_lines = []
@@ -391,6 +391,26 @@ def checkIntersect(line1, line2):
 
     #Do the segments intersect?
 
+    # A = np.array([line1[0][0],line1[0][1]])
+    # B = np.array([line1[1][0],line1[1][1]])
+    # C = np.array([line2[0][0],line2[0][1]])
+    # D = np.array([line2[1][0],line2[1][1]])
+    #
+    # CA = A-C
+    # CD = D-C
+    # CB = B-C
+    #
+    # AC = C-A
+    # AD = D-A
+    # AB = B-A
+    #
+    # if (np.cross(CA,CD).tolist() * np.cross(CB,CD).tolist()) <= 0:
+    #     if (np.cross(AC,AB).tolist() * np.cross(AD,AB).tolist()) <= 0:
+    #         return True
+    #
+    # return False
+
+
     A = np.array([line1[0][0],line1[0][1]])
     B = np.array([line1[1][0],line1[1][1]])
     C = np.array([line2[0][0],line2[0][1]])
@@ -404,11 +424,59 @@ def checkIntersect(line1, line2):
     AD = D-A
     AB = B-A
 
-    if (np.cross(CA,CD).tolist() * np.cross(CB,CD).tolist()) <= 0:
-        if (np.cross(AC,AB).tolist() * np.cross(AD,AB).tolist()) <= 0:
+
+    cross1 = np.cross(CA,CD).tolist()
+    cross2 = np.cross(CB,CD).tolist()
+    cross3 = np.cross(AC,AB).tolist()
+    cross4 = np.cross(AD,AB).tolist()
+
+    # print("Cross: ", cross1, cross2, cross3, cross4)
+
+    #parallel
+    if cross1 == 0 and cross2 == 0 and cross3 == 0 and cross4 == 0:
+        # print("parallel")
+        #Vertical Line
+        if A[0] - B[0] == 0:
+            if min(C[1],D[1]) >= min(A[1],B[1]) and min(C[1],D[1]) <= max(A[1],B[1]):
+                return True
+        elif min(C[0],D[0]) >= min(A[0],B[0]) and min(C[0],D[0]) <= max(A[0],B[0]):
+            return True
+
+    #One point touches
+    if cross1 == 0 or cross2 == 0 or cross3 == 0 or cross4 == 0:
+        # print("One touch")
+        #vertical case
+        if A[0] - B[0] == 0:
+            m = (D[1] - C[1])/(D[0] - C[0])
+            b = C[1] - m*C[0]
+            yA = A[0] * m + b
+            yB = B[0] * m + b
+            if yA == A[1]  and yA >= min(C[1],D[1]) and yA <= max(C[1],D[1]) or yB == B[1] >= min(C[0],D[0]) and yB <= max(C[0],D[0]):
+                return True
+            # print("vertical line1")
+            # if min(A[1],B[1]) >= min(C[1],D[1]) and min(A[1],B[1]) <= max(C[1],D[1]) and min(A[0],B[0]) >= min(C[0],D[0]) and min(A[0],B[0]) <= max(C[0],D[0]):
+            #     return True
+        elif C[0] - D[0] == 0:
+            m = (B[1] - A[1])/(B[0] - A[0])
+            b = A[1] - m*A[0]
+            yC = C[0] * m + b
+            yD = D[0] * m + b
+            if yC == C[1] and yC >= min(A[1],B[1]) and yC <= max(A[1],B[1]) or yD == D[1] and yD >= min(A[0],B[0]) and yD <= max(A[0],B[0]):
+                return True
+
+            # print("vertical line2")
+            # if min(C[1],D[1]) >= min(A[1],B[1]) and min(C[1],D[1]) <= max(A[1],B[1]) and min(C[0],D[0]) >= min(A[0],B[0]) and min(C[0],D[0]) <= max(A[0],B[0]):
+            #     return True
+        elif min(C[0],D[0]) >= min(A[0],B[0]) and min(C[0],D[0]) <= max(A[0],B[0]) or max(C[0],D[0]) >= min(A[0],B[0]) and max(C[0],D[0]) <= max(A[0],B[0]):
+            return True
+
+
+    if (np.cross(CA,CD).tolist() * np.cross(CB,CD).tolist()) < 0:
+        if (np.cross(AC,AB).tolist() * np.cross(AD,AB).tolist()) < 0:
             return True
 
     return False
+
     #Do something here
 
 def does_robot_collide(segment, robot, obstacles):
@@ -417,7 +485,7 @@ def does_robot_collide(segment, robot, obstacles):
     # print(segment)
 
     if not isCollisionFree(robot, p1, obstacles) or not isCollisionFree(robot, p2, obstacles):
-        print(segment)
+        # print(segment)
         return True
 
     checkList = []
@@ -505,7 +573,7 @@ def RRT(robot, obstacles, startPoint, goalPoint):
     start_index = 1
     points[start_index] = startPoint
 
-    for i in range(2,300):
+    for i in range(2,1000):
         point_x = random.uniform(0, 10)
         point_y = random.uniform(0, 10)
         points[i] = (point_x, point_y)
@@ -513,7 +581,7 @@ def RRT(robot, obstacles, startPoint, goalPoint):
     goal_index = len(points) + 1
     points[goal_index] = goalPoint
 
-    print(points[goal_index])
+    # print(points[goal_index])
 
     while point_is_in_obstacle(points[1], obstacles):
         # print("Oh no 1!")
@@ -725,7 +793,7 @@ def RRT(robot, obstacles, startPoint, goalPoint):
 
         if distance < closest_distance:
             if not does_robot_collide(new_segment, robot, obstacles):
-                print("Happiness")
+                # print("Happiness")
                 closest_distance = distance
                 closest_point_index = closest_index
                 final_closest_point = closest_point
@@ -783,19 +851,19 @@ def RRT(robot, obstacles, startPoint, goalPoint):
 
 
 
-    print("\n\n\n")
-    print(adjListMap)
-    print(start_index)
-    print(goal_index)
-    #print(newPoints)
-    goal_index = len(newPoints)
+    # print("\n\n\n")
+    # print(adjListMap)
+    # print(start_index)
+    # print(goal_index)
+    # print(newPoints)
+    goal_index = len(newPoints) - 1
 
     path = basicSearch(adjListMap, start_index, goal_index)
 
-    for entry in path:
-        print("{} -> ").format(newPoints[entry])
+    # for entry in path:
+        # print("{} -> ").format(newPoints[entry])
 
-    print("Path: {}").format(path)
+    # print("Path: {}").format(path)
 
     return newPoints, adjListMap, path
 
@@ -900,8 +968,8 @@ if __name__ == "__main__":
     # Search for a solution
     path = basicSearch(adjListMap, 1, len(points))
 
-    print("Path: {}").format(path)
-    print("NewPoints: {}").format(points)
+    # print("Path: {}").format(path)
+    # print("NewPoints: {}").format(points)
 
     # print("\n\n Test Intersect {} \n\n").format(test)
 
