@@ -1,6 +1,5 @@
 ################
 '''
-Fix path graphic
 robot inside obstacle
 '''
 ###############
@@ -518,6 +517,11 @@ def does_robot_collide(segment, robot, obstacles):
 def isCollisionFree(robot, point, obstacles):
     # print(point)
     obstList = []
+
+    for point in robot:
+        if point_is_in_obstacle(point,obstacles)
+            return False
+
 
     for obstacle in obstacles:
         for index,pt1 in enumerate(obstacle):
