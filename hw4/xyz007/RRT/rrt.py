@@ -515,13 +515,8 @@ def isCollisionFree(robot, point, obstacles):
     # print(point)
     obstList = []
 
-<<<<<<< HEAD
     for rpoint in robot:
         if point_is_in_obstacle((point[0] + rpoint[0], point[1] + rpoint[1]),obstacles):
-=======
-    for point in robot:
-        if point_is_in_obstacle(point,obstacles):
->>>>>>> 3d98624c506b0460b9a32efb5fa57ded56c787fe
             return False
 
 
