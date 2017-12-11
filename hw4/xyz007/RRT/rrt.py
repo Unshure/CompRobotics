@@ -51,7 +51,6 @@ def createPolygonPatch(polygon, color):
 
     return patch
 
-
 '''
 Render the problem
 '''
@@ -367,7 +366,6 @@ def displayRRTandPath(points, tree, path, robotStart = None, robotGoal = None, p
 '''
 Collision checking
 '''
-
 def checkIntersect(line1, line2):
     # xdiff = (line1[0][0] - line1[1][0], line2[0][0] - line2[1][0])
     # ydiff = (line1[0][1] - line1[1][1], line2[0][1] - line2[1][1]) #Typo was here
@@ -513,13 +511,12 @@ def does_robot_collide(segment, robot, obstacles):
 
     return False
 
-
 def isCollisionFree(robot, point, obstacles):
     # print(point)
     obstList = []
 
-    for point in robot:
-        if point_is_in_obstacle(point,obstacles)
+    for rpoint in robot:
+        if point_is_in_obstacle((point[0] + rpoint[0], point[1] + rpoint[1]),obstacles):
             return False
 
 
@@ -654,8 +651,8 @@ def RRT(robot, obstacles, startPoint, goalPoint):
             line = segment['line']
             closest_point, is_new_point, distance = find_closest_point(line[0], line[1], point)
 
-            # print("Meow Meow")
-            # print("New: {}, Segment {} -> {}, Closest: {}, IsNew: {}, Distance: {}").format(point, line[0], line[1], closest_point, is_new_point, distance)
+            print("Meow Meow")
+            print(point_index)
 
             closest_index = [-1,-1]
 
@@ -751,6 +748,7 @@ def RRT(robot, obstacles, startPoint, goalPoint):
 
     #Do one more time for goal point###########################################
 
+    print("\n\n\n\n\n\n THE GAME HAS STARTED \n\n\n\n\n\n\n")
     point = points[len(points)]
     #Add it to the new_points_list
     index = len(newPoints)+1
@@ -768,15 +766,15 @@ def RRT(robot, obstacles, startPoint, goalPoint):
     # print("\n\n Here")
     # print(segment_list)
 
-    for segment in segment_list:
+    for Index,segment in enumerate(segment_list):
 
         point_1 = segment['point1']
         point_2 = segment['point2']
         line = segment['line']
         closest_point, is_new_point, distance = find_closest_point(line[0], line[1], point)
 
-        # print("Meow Meow")
-        # print("New: {}, Segment {} -> {}, Closest: {}, IsNew: {}, Distance: {}").format(point, line[0], line[1], closest_point, is_new_point, distance)
+        print("Meow Meow Meow")
+        print(Index)
 
         closest_index = [-1,-1]
 
