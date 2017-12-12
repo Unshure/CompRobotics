@@ -442,37 +442,57 @@ def checkIntersect(line1, line2):
         if A[0] - B[0] == 0:
             if min(C[1],D[1]) >= min(A[1],B[1]) and min(C[1],D[1]) <= max(A[1],B[1]):
                 return True
-        elif min(C[0],D[0]) >= min(A[0],B[0]) and min(C[0],D[0]) <= max(A[0],B[0]):
+            if min(A[1],B[1]) >= min(C[1],D[1]) and min(A[1],B[1]) <= max(C[1],D[1]):
+                return True
+        elif min(C[0],D[0]) >= min(A[0],B[0]) and min(C[0],D[0]) <= max(A[0],B[0]) or min(A[0],B[0]) >= min(C[0],D[0]) and min(A[0],B[0]) <= max(C[0],D[0]):
             return True
 
     #One point touches
-    if cross1 == 0 or cross2 == 0 or cross3 == 0 or cross4 == 0:
+    if (cross1 == 0) ^ (cross2 == 0) ^ (cross3 == 0) ^ (cross4 == 0):
+
         # print("One touch")
         #vertical case
         if A[0] - B[0] == 0:
-            m = (D[1] - C[1])/(D[0] - C[0])
-            b = C[1] - m*C[0]
-            yA = A[0] * m + b
-            yB = B[0] * m + b
-            if yA == A[1]  and yA >= min(C[1],D[1]) and yA <= max(C[1],D[1]) or yB == B[1] >= min(C[0],D[0]) and yB <= max(C[0],D[0]):
-                return True
-            # print("vertical line1")
-            # if min(A[1],B[1]) >= min(C[1],D[1]) and min(A[1],B[1]) <= max(C[1],D[1]) and min(A[0],B[0]) >= min(C[0],D[0]) and min(A[0],B[0]) <= max(C[0],D[0]):
-            #     return True
-        elif C[0] - D[0] == 0:
-            m = (B[1] - A[1])/(B[0] - A[0])
-            b = A[1] - m*A[0]
-            yC = C[0] * m + b
-            yD = D[0] * m + b
-            if yC == C[1] and yC >= min(A[1],B[1]) and yC <= max(A[1],B[1]) or yD == D[1] and yD >= min(A[0],B[0]) and yD <= max(A[0],B[0]):
+
+            if min(C[0],D[0]) == A[0] and min(C[1],D[1]) >= min(A[1],B[1]) and min(C[1],D[1]) <= max(A[1],B[1]):
                 return True
 
-            # print("vertical line2")
-            # if min(C[1],D[1]) >= min(A[1],B[1]) and min(C[1],D[1]) <= max(A[1],B[1]) and min(C[0],D[0]) >= min(A[0],B[0]) and min(C[0],D[0]) <= max(A[0],B[0]):
-            #     return True
-        elif min(C[0],D[0]) >= min(A[0],B[0]) and min(C[0],D[0]) <= max(A[0],B[0]) or max(C[0],D[0]) >= min(A[0],B[0]) and max(C[0],D[0]) <= max(A[0],B[0]):
-            return True
+            if max(C[0],D[0]) == A[0] and max(C[1],D[1]) >= min(A[1],B[1]) and max(C[1],D[1]) <= max(A[1],B[1]):
+                return True
 
+            return False
+
+        if C[0] - D[0] == 0:
+
+            if min(A[0],B[0]) == C[0] and min(A[1],B[1]) >= min(C[1],D[1]) and min(A[1],B[1]) <= max(C[1],D[1]):
+                return True
+
+            if max(A[0],B[0]) == C[0] and max(A[1],B[1]) >= min(C[1],D[1]) and max(A[1],B[1]) <= max(C[1],D[1]):
+                return True
+
+            return False
+
+        cd_slope = (D[1] - C[1])/(D[0] - C[0]) #0
+        cd_intercept = C[1] - (cd_slope * C[0]) #0
+
+        ab_slope = (B[1] - A[1])/(B[0] - A[0]) #1
+        ab_intercept = A[1] - (cd_slope * A[0]) #0
+
+        try:
+
+            x = (1/(1 - (cd_slope/ab_slope))) * ( (cd_intercept/ab_slope) - (ab_intercept/ab_slope))
+            
+            if x >= min(A[0],B[0]) and x <= max(A[0],B[0]):
+                if x >= min(C[0],D[0]) and x <= max(C[0],D[0]):
+                    return True
+
+                else:
+                    return False
+            else:
+                return False
+
+        except:
+            return False
 
     if (np.cross(CA,CD).tolist() * np.cross(CB,CD).tolist()) < 0:
         if (np.cross(AC,AB).tolist() * np.cross(AD,AB).tolist()) < 0:
@@ -489,7 +509,6 @@ def does_robot_collide(segment, robot, obstacles):
     # print(segment)
 
     if not isCollisionFree(robot, p1, obstacles) or not isCollisionFree(robot, p2, obstacles):
-        # print(segment)
         return True
 
     checkList = []
@@ -525,6 +544,7 @@ def isCollisionFree(robot, point, obstacles):
 
     for rpoint in robot:
         if point_is_in_obstacle((point[0] + rpoint[0], point[1] + rpoint[1]),obstacles):
+            print("Point {} is in obstacle...").format((point[0] + rpoint[0], point[1] + rpoint[1]))
             return False
 
 
@@ -532,6 +552,7 @@ def isCollisionFree(robot, point, obstacles):
         for index,pt1 in enumerate(obstacle):
             nextindex = (index+1)%len(obstacle)
             obstList.append([[pt1[0],pt1[1]],[obstacle[nextindex][0],obstacle[nextindex][1]]])
+    
     obstList.append([[0,0],[0,10]])
     obstList.append([[0,10],[10,10]])
     obstList.append([[10,10],[10,0]])
@@ -545,6 +566,7 @@ def isCollisionFree(robot, point, obstacles):
             # print(roboedge)
             # print(edge)
             if checkIntersect(roboedge,edge):
+                print("{} and {} are intersecting").format(roboedge, edge)
                 # print(roboedge)
                 # print(edge)
                 return False
@@ -553,8 +575,9 @@ def isCollisionFree(robot, point, obstacles):
 
 def point_is_in_obstacle(point, obstacles):
 
+
     P0 = point
-    P1 = [10,point[1]]
+    P1 = [10, 6.2375]
     ray = [[P0[0],P0[1]],[P1[0],P1[1]]]
 
     counter = 0
@@ -566,10 +589,10 @@ def point_is_in_obstacle(point, obstacles):
             if checkIntersect(segment, ray):
                 counter = counter + 1
 
-    if (counter % 2) != 0:
-        return True
-    else:
+    if (counter % 2) == 0:
         return False
+    else:
+        return True
 
 '''
 The full RRT algorithm
@@ -617,7 +640,14 @@ def RRT(robot, obstacles, startPoint, goalPoint):
 
     #Now we have two points
     #Start can't connect to goal
+
+    max_points = 3000
+
     while True:
+
+        if len(newPoints) >= max_points:
+            print("Unsolvable in {} points").format(max_points)
+            sys.exit()
 
         #Generate a new point
         point_x = random.uniform(0, 10)
@@ -757,12 +787,6 @@ def RRT(robot, obstacles, startPoint, goalPoint):
         if newPoints[x][0] == goalPoint[0] and newPoints[x][1] == goalPoint[1]:
             goal_index = x
             break
-
-    print("\n\n\n")
-    print(adjListMap)
-    print(start_index)
-    print(goal_index)
-    print(newPoints)
 
     path = basicSearch(adjListMap, start_index, goal_index)
 
@@ -962,7 +986,8 @@ if __name__ == "__main__":
     points[19] = (7.3, 5.8)
     points[20] = (9, 0.6)
 
-    # for i in range(1,300):
+    # points = dict()
+    # for i in range(1,2000):
     #     point_x = random.uniform(0, 10)
     #     point_y = random.uniform(0, 10)
     #     points[i] = (point_x, point_y)
