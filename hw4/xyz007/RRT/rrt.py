@@ -433,11 +433,11 @@ def checkIntersect(line1, line2):
     cross3 = np.cross(AC,AB).tolist()
     cross4 = np.cross(AD,AB).tolist()
 
-    # print("Cross: ", cross1, cross2, cross3, cross4)
+    #print("Cross: ", cross1, cross2, cross3, cross4)
 
     #parallel
     if cross1 == 0 and cross2 == 0 and cross3 == 0 and cross4 == 0:
-        # print("parallel")
+        #print("parallel")
         #Vertical Line
         if A[0] - B[0] == 0:
             if min(C[1],D[1]) >= min(A[1],B[1]) and min(C[1],D[1]) <= max(A[1],B[1]):
@@ -447,35 +447,37 @@ def checkIntersect(line1, line2):
 
     #One point touches
     if cross1 == 0 or cross2 == 0 or cross3 == 0 or cross4 == 0:
-        # print("One touch")
+        #print("One touch")
         #vertical case
         if A[0] - B[0] == 0:
             m = (D[1] - C[1])/(D[0] - C[0])
             b = C[1] - m*C[0]
-            yA = A[0] * m + b
-            yB = B[0] * m + b
-            if yA == A[1]  and yA >= min(C[1],D[1]) and yA <= max(C[1],D[1]) or yB == B[1] >= min(C[0],D[0]) and yB <= max(C[0],D[0]):
+            yC = C[0] * m + b 
+            yD = D[0] * m + b
+            if yC == C[1] and yC >= min(A[1],B[1]) and yC <= max(A[1],B[1]) or yD == D[1] and yD >= min(A[1],B[1]) and yD <= max(A[1],B[1]):
                 return True
+
             # print("vertical line1")
             # if min(A[1],B[1]) >= min(C[1],D[1]) and min(A[1],B[1]) <= max(C[1],D[1]) and min(A[0],B[0]) >= min(C[0],D[0]) and min(A[0],B[0]) <= max(C[0],D[0]):
             #     return True
         elif C[0] - D[0] == 0:
             m = (B[1] - A[1])/(B[0] - A[0])
             b = A[1] - m*A[0]
-            yC = C[0] * m + b
-            yD = D[0] * m + b
-            if yC == C[1] and yC >= min(A[1],B[1]) and yC <= max(A[1],B[1]) or yD == D[1] and yD >= min(A[0],B[0]) and yD <= max(A[0],B[0]):
+            yA = A[0]*m + b
+            yB = B[0]*m + b
+            print(A[1])
+            if yA == A[1]  and yA >= min(C[1],D[1]) and yA <= max(C[1],D[1]) or yB == B[1] >= min(C[1],D[1]) and yB <= max(C[1],D[1]):
                 return True
 
             # print("vertical line2")
             # if min(C[1],D[1]) >= min(A[1],B[1]) and min(C[1],D[1]) <= max(A[1],B[1]) and min(C[0],D[0]) >= min(A[0],B[0]) and min(C[0],D[0]) <= max(A[0],B[0]):
             #     return True
         elif min(C[0],D[0]) >= min(A[0],B[0]) and min(C[0],D[0]) <= max(A[0],B[0]) or max(C[0],D[0]) >= min(A[0],B[0]) and max(C[0],D[0]) <= max(A[0],B[0]):
-            return True
+            return True            
 
 
-    if (np.cross(CA,CD).tolist() * np.cross(CB,CD).tolist()) < 0:
-        if (np.cross(AC,AB).tolist() * np.cross(AD,AB).tolist()) < 0:
+    if (np.cross(CA,CD).tolist() * np.cross(CB,CD).tolist()) <= 0:
+        if (np.cross(AC,AB).tolist() * np.cross(AD,AB).tolist()) <= 0:
             return True
 
     return False
@@ -564,8 +566,10 @@ def point_is_in_obstacle(point, obstacles):
             nextindex = (index+1)%len(obstacle)
             segment = [[pt1[0],pt1[1]],[obstacle[nextindex][0],obstacle[nextindex][1]]]
             if checkIntersect(segment, ray):
+                print segment
                 counter = counter + 1
 
+    print counter
     if (counter % 2) != 0:
         return True
     else:

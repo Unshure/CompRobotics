@@ -60,19 +60,21 @@ def line_intersection(line1, line2):
         if A[0] - B[0] == 0:
             m = (D[1] - C[1])/(D[0] - C[0])
             b = C[1] - m*C[0]
-            yA = A[0] * m + b
-            yB = B[0] * m + b
-            if yA == A[1]  and yA >= min(C[1],D[1]) and yA <= max(C[1],D[1]) or yB == B[1] >= min(C[0],D[0]) and yB <= max(C[0],D[0]):
+            yC = C[0] * m + b 
+            yD = D[0] * m + b
+            if yC == C[1] and yC >= min(A[1],B[1]) and yC <= max(A[1],B[1]) or yD == D[1] and yD >= min(A[1],B[1]) and yD <= max(A[1],B[1]):
                 return True
+
             # print("vertical line1")
             # if min(A[1],B[1]) >= min(C[1],D[1]) and min(A[1],B[1]) <= max(C[1],D[1]) and min(A[0],B[0]) >= min(C[0],D[0]) and min(A[0],B[0]) <= max(C[0],D[0]):
             #     return True
         elif C[0] - D[0] == 0:
             m = (B[1] - A[1])/(B[0] - A[0])
             b = A[1] - m*A[0]
-            yC = C[0] * m + b 
-            yD = D[0] * m + b
-            if yC == C[1] and yC >= min(A[1],B[1]) and yC <= max(A[1],B[1]) or yD == D[1] and yD >= min(A[0],B[0]) and yD <= max(A[0],B[0]):
+            yA = A[0]*m + b
+            yB = B[0]*m + b
+            print(A[1])
+            if yA == A[1]  and yA >= min(C[1],D[1]) and yA <= max(C[1],D[1]) or yB == B[1] >= min(C[1],D[1]) and yB <= max(C[1],D[1]):
                 return True
 
             # print("vertical line2")
@@ -82,8 +84,8 @@ def line_intersection(line1, line2):
             return True            
 
 
-    if (np.cross(CA,CD).tolist() * np.cross(CB,CD).tolist()) < 0:
-        if (np.cross(AC,AB).tolist() * np.cross(AD,AB).tolist()) < 0:
+    if (np.cross(CA,CD).tolist() * np.cross(CB,CD).tolist()) <= 0:
+        if (np.cross(AC,AB).tolist() * np.cross(AD,AB).tolist()) <= 0:
             return True
 
     return False
