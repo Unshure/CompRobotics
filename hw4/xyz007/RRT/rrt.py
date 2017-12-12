@@ -327,7 +327,7 @@ def displayRRTandPath(points, tree, path, robotStart = None, robotGoal = None, p
     # drawProblem and modify it to do what you need.
     # You should draw the problem when applicable.
 
-    print("Path: {}").format(path)
+    # print("Path: {}").format(path)
 
     lines = []
     path_lines = []
@@ -544,7 +544,7 @@ def isCollisionFree(robot, point, obstacles):
 
     for rpoint in robot:
         if point_is_in_obstacle((point[0] + rpoint[0], point[1] + rpoint[1]),obstacles):
-            print("Point {} is in obstacle...").format((point[0] + rpoint[0], point[1] + rpoint[1]))
+            # print("Point {} is in obstacle...").format((point[0] + rpoint[0], point[1] + rpoint[1]))
             return False
 
 
@@ -566,7 +566,7 @@ def isCollisionFree(robot, point, obstacles):
             # print(roboedge)
             # print(edge)
             if checkIntersect(roboedge,edge):
-                print("{} and {} are intersecting").format(roboedge, edge)
+                # print("{} and {} are intersecting").format(roboedge, edge)
                 # print(roboedge)
                 # print(edge)
                 return False
@@ -641,12 +641,12 @@ def RRT(robot, obstacles, startPoint, goalPoint):
     #Now we have two points
     #Start can't connect to goal
 
-    max_points = 3000
+    max_points = 2000
 
     while True:
 
         if len(newPoints) >= max_points:
-            print("Unsolvable in {} points").format(max_points)
+            print("No solution found in {} points").format(max_points)
             sys.exit()
 
         #Generate a new point
